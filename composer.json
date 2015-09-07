@@ -1,0 +1,5 @@
+{
+    "require": {
+        "crewlabs/unsplash": "^1.0"
+    }
+}
