@@ -1,5 +1,11 @@
 {
     "require": {
-        "crewlabs/unsplash": "^1.0"
+        "crewlabs/unsplash": "^1.0",
+        "symfony/console": "^2.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Simondubois\\UnsplashDownloader\\": "src/"
+        }
     }
 }
