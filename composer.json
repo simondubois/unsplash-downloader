@@ -1,4 +1,7 @@
 {
+    "name": "simondubois/unsplash-downloader",
+    "description": "CLI to download photos from unsplash.com",
+    "license": "GNU Version 2",
     "require": {
         "crewlabs/unsplash": "^1.0",
         "symfony/console": "^2.7"

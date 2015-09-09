@@ -1,6 +1,5 @@
 <?php namespace Simondubois\UnsplashDownloader;
 
-use Simondubois\UnsplashDownloader\Command\Download;
 use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Input\InputInterface;
 
