@@ -46,9 +46,9 @@ class Download extends Command
             $destination = $this->relativeDestination($option);
         }
 
-        $destination = $this->validDestination($destination);
+        $validDestination = $this->validDestination($destination);
 
-        return $destination;
+        return $validDestination;
     }
 
     private function absoluteDestination($option)
