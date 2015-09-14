@@ -6,7 +6,6 @@ use Crew\Unsplash\Photo;
 class Unsplash
 {
 
-    private $output;
     private $destination;
     private $quantity;
 
@@ -32,7 +31,17 @@ class Unsplash
     }
 
     public function download(Photo $photo) {
-        $source = $photo->links['download'];
+        $source = $this->photoSource($photo);
+        $destination = $this->photoDestination($photo);
+
+        copy($source, $destination);
     }
 
+    public function photoSource(Photo $photo) {
+        return $photo->links['download'];
+    }
+
+    public function photoDestination(Photo $photo) {
+        return "{$this->destination}/{$photo->id}.jpg";
+    }
 }

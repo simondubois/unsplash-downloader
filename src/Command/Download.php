@@ -53,7 +53,10 @@ class Download extends Command
 
         foreach ($proxy->photos() as $photo) {
             if ($output->isVerbose()) {
-                $output->writeln("Download photo.");
+                $source = $proxy->photoSource($photo);
+                $destination = $proxy->photoDestination($photo);
+
+                $output->writeln("Download photo from {$source} to {$destination}.");
             }
 
             $proxy->download($photo);
