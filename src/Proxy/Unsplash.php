@@ -6,15 +6,34 @@ use Crew\Unsplash\Photo;
 class Unsplash
 {
 
+    const DOWNLOAD_SUCCESS = 0;
+    const DOWNLOAD_HISTORY = 1;
+    const DOWNLOAD_FAILED = 2;
+
+
     private $destination;
     private $quantity;
+    private $historyPath;
+    private $historyList = [];
 
-    public function __construct($destination, $quantity)
+    public function __construct($destination, $quantity, $history)
     {
         $this->destination = $destination;
         $this->quantity = $quantity;
 
+        if (is_string($history)) {
+            $this->historyPath = $history;
+            $this->historyList = file($this->historyPath);
+        }
+
         $this->connect();
+    }
+
+    public function __destruct()
+    {
+        if (is_string($this->historyPath)) {
+            file_put_contents($this->historyPath, implode(PHP_EOL, $this->historyList));
+        }
     }
 
     private function connect()
@@ -31,10 +50,20 @@ class Unsplash
     }
 
     public function download(Photo $photo) {
+        if (in_array($photo->id."\n", $this->historyList)) {
+            return self::DOWNLOAD_HISTORY;
+        }
+
         $source = $this->photoSource($photo);
         $destination = $this->photoDestination($photo);
 
-        copy($source, $destination);
+        if (@copy($source, $destination) === false) {
+            return self::DOWNLOAD_FAILED;
+        }
+
+        $this->historyList[] = $photo->id;
+
+        return self::DOWNLOAD_SUCCESS;
     }
 
     public function photoSource(Photo $photo) {

@@ -29,6 +29,15 @@ class Download extends Command
                 'If defined, number of photos to downaload',
                 '10'
             )
+            ->addOption(
+                'history',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'If defined, filename will be used to record download history. '
+                    .'When photos are downloaded, their IDs will be stored into the file. '
+                    .'Then any further download is going to ignore photos that have their ID in the history. '
+                    .'Usefull to delete unwanted pictures and prevent the programm to download them again.'
+            )
         ;
     }
 
@@ -44,24 +53,42 @@ class Download extends Command
             $output->writeln("Download the last {$quantity} photos.");
         }
 
-        $this->download($output, $destination, $quantity);
+        $history = $this->history($input->getOption('history'));
+        if ($output->isVerbose()) {
+            if (is_string($history)) {
+                $output->writeln("Use {$history} as history.");
+            } else {
+                $output->writeln("Do not use history.");
+            }
+        }
+
+        $this->download($output, $destination, $quantity, $history);
     }
 
-    protected function download(OutputInterface $output, $destination, $quantity)
+    protected function download(OutputInterface $output, $destination, $quantity, $history)
     {
-        $proxy = new Unsplash($destination, $quantity);
+        $proxy = new Unsplash($destination, $quantity, $history);
 
         foreach ($proxy->photos() as $photo) {
             if ($output->isVerbose()) {
                 $source = $proxy->photoSource($photo);
                 $destination = $proxy->photoDestination($photo);
 
-                $output->writeln("Download photo from {$source} to {$destination}.");
+                $output->write("Download photo from {$source} to {$destination}... ");
             }
 
-            $proxy->download($photo);
+            $status = $proxy->download($photo);
+            if ($status === Unsplash::DOWNLOAD_SUCCESS) {
+                $output->writeln("<info>success</info>.");
+            } elseif ($status === Unsplash::DOWNLOAD_HISTORY) {
+                $output->writeln("<comment>ignored (in history)</comment>.");
+            } elseif ($status === Unsplash::DOWNLOAD_FAILED) {
+                $output->writeln("<error>failed</error>.");
+            }
         }
     }
+
+
 
     //
     // Handle option "destination"
@@ -69,50 +96,28 @@ class Download extends Command
 
     private function destination($option)
     {
-        if (substr($option, 0, 1) === '/') {
-            $destination = $this->absoluteDestination($option);
-        } else {
-            $destination = $this->relativeDestination($option);
+        $destination = $this->resolvedPath($option);
+        $destination = realpath($destination);
+
+        if ($destination === false) {
+            throw new Exception("The given destination path ({$option}) does not exists.");
         }
 
-        $validDestination = $this->validDestination($destination);
-
-        return $validDestination;
-    }
-
-    private function absoluteDestination($option)
-    {
-        return $option;
-    }
-
-    private function relativeDestination($option)
-    {
-        return getcwd().'/'.$option;
-    }
-
-    private function validDestination($destination)
-    {
-        $validDestination = realpath($destination);
-
-        if ($validDestination === false) {
-            throw new Exception("The given destination path ({$destination}) does not exists.");
+        if (is_dir($destination) === false) {
+            throw new Exception("The given destination path ({$destination}) is not a directory.");
         }
 
-        if (is_dir($validDestination) === false) {
-            throw new Exception("The given destination path ({$validDestination}) is not a directory.");
+        if (is_writable($destination) === false) {
+            throw new Exception("The given destination path ({$destination}) is not writable.");
         }
 
-        if (is_writable($validDestination) === false) {
-            throw new Exception("The given destination path ({$validDestination}) is not writable.");
-        }
-
-        return $validDestination;
+        return $destination;
     }
 
 
 
     //
-    // Handle option "destination"
+    // Handle option "quantity"
     //
 
     private function quantity($option)
@@ -132,6 +137,51 @@ class Download extends Command
         }
 
         return $quantity;
+    }
+
+
+
+    //
+    // Handle option "history"
+    //
+
+    private function history($option)
+    {
+        if (is_null($option)) {
+            return $option;
+        }
+
+        $history = $this->resolvedPath($option);
+
+        if (is_dir($history) === true) {
+            throw new Exception("The given history path ({$history}) is not a file.");
+        }
+
+        $handle = @fopen($history, 'a+');
+
+        if ($handle === false) {
+            throw new Exception("The given history path ({$option}) can not be opened for read & write.");
+        }
+
+        fclose($handle);
+
+        return $history;
+    }
+
+
+
+
+    //
+    // Helpers
+    //
+
+    private function resolvedPath($path)
+    {
+        if (substr($path, 0, 1) !== '/') {
+            $path = getcwd().'/'.$path;
+        }
+
+        return $path;
     }
 
 }
