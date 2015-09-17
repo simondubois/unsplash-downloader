@@ -14,8 +14,6 @@ class UnsplashTest extends PHPUnit_Framework_TestCase
 
     public static function setUpBeforeClass()
     {
-        static::$downloadPath = getcwd().'/tests/tmp';
-
         if (is_file(static::$downloadPath)) {
             throw new Exception('Path "'.static::$downloadPath.'" should not be a file.');
         } elseif (is_dir(static::$downloadPath)) {
@@ -34,17 +32,44 @@ class UnsplashTest extends PHPUnit_Framework_TestCase
     }
 
 
+    public function validData() {
+        static::$downloadPath = getcwd().'/tests/tmp';
+
+        return [
+            [static::$downloadPath, 1, null],
+        ];
+    }
 
     //
     // TEST CASES
     //
 
-    public function testDefault()
+    /**
+     * @dataProvider validData
+     */
+    public function testValid($destination, $quantity, $history)
     {
-        $proxy = new Unsplash(static::$downloadPath, 10, null);
+        $proxy = new Unsplash($destination, $quantity, $history);
         $this->assertInstanceOf('Simondubois\UnsplashDownloader\Proxy\Unsplash', $proxy);
 
+        $connect = $proxy->connect();
+        $this->assertTrue($connect);
 
+        $photos = $proxy->photos();
+        $this->assertCount($quantity, $photos);
+        $this->assertContainsOnlyInstancesOf('Crew\Unsplash\Photo', $photos);
+
+        foreach ($photos as $photo) {
+            $photoSource = $proxy->photoSource($photo);
+            $this->assertEquals($photo->links['download'], $photoSource);
+
+            $photoDestination = $proxy->photoDestination($photo);
+            $this->assertEquals("$destination/{$photo->id}.jpg", $photoDestination);
+
+            $download = $proxy->download($photo);
+            $this->assertEquals(Unsplash::DOWNLOAD_SUCCESS, $download);
+            $this->assertFileExists($photoDestination);
+        }
     }
 
 
