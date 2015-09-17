@@ -1,5 +1,6 @@
 <?php namespace Simondubois\UnsplashDownloader\Command;
 
+use Exception;
 use InvalidArgumentException;
 use Simondubois\UnsplashDownloader\Proxy\Unsplash;
 use Symfony\Component\Console\Command\Command;
@@ -9,6 +10,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Download extends Command
 {
+
+    private $output;
 
     protected function configure()
     {
@@ -43,47 +46,77 @@ class Download extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->output = $output;
+
+        $this->parameters($input, $destination, $quantity, $history);
+
+        $proxy = $this->connect($destination, $quantity, $history);
+
+        $this->download($proxy);
+    }
+
+    protected function parameters($input, &$destination, &$quantity, &$history)
+    {
         $destination = $this->destination($input->getOption('destination'));
-        if ($output->isVerbose()) {
-            $output->writeln("Download photos to {$destination}.");
+        if ($this->output->isVerbose()) {
+            $this->output->writeln("Download photos to {$destination}.");
         }
 
         $quantity = $this->quantity($input->getOption('quantity'));
-        if ($output->isVerbose()) {
-            $output->writeln("Download the last {$quantity} photos.");
+        if ($this->output->isVerbose()) {
+            $this->output->writeln("Download the last {$quantity} photos.");
         }
 
         $history = $this->history($input->getOption('history'));
-        if ($output->isVerbose()) {
+        if ($this->output->isVerbose()) {
             if (is_string($history)) {
-                $output->writeln("Use {$history} as history.");
+                $this->output->writeln("Use {$history} as history.");
             } else {
-                $output->writeln("Do not use history.");
+                $this->output->writeln("Do not use history.");
             }
         }
-
-        $this->download($output, $destination, $quantity, $history);
     }
 
-    protected function download(OutputInterface $output, $destination, $quantity, $history)
+    protected function connect($destination, $quantity, $history)
     {
         $proxy = new Unsplash($destination, $quantity, $history);
 
+        if ($this->output->isVerbose()) {
+            $this->output->write("Connect to unsplash... ");
+        }
+
+        $connect = $proxy->connect();
+
+        if ($connect === false && $this->output->isVerbose()) {
+            $this->output->writeln("<error>failed</error>.");
+        }
+
+        if ($connect === false) {
+            throw new Exception("Can not connect to unsplash (check your Internet connection");
+        }
+
+        $this->output->writeln("<info>success</info>.");
+
+        return $proxy;
+    }
+
+    protected function download($proxy)
+    {
         foreach ($proxy->photos() as $photo) {
-            if ($output->isVerbose()) {
+            if ($this->output->isVerbose()) {
                 $source = $proxy->photoSource($photo);
                 $destination = $proxy->photoDestination($photo);
 
-                $output->write("Download photo from {$source} to {$destination}... ");
+                $this->output->write("Download photo from {$source} to {$destination}... ");
             }
 
             $status = $proxy->download($photo);
             if ($status === Unsplash::DOWNLOAD_SUCCESS) {
-                $output->writeln("<info>success</info>.");
+                $this->output->writeln("<info>success</info>.");
             } elseif ($status === Unsplash::DOWNLOAD_HISTORY) {
-                $output->writeln("<comment>ignored (in history)</comment>.");
+                $this->output->writeln("<comment>ignored (in history)</comment>.");
             } elseif ($status === Unsplash::DOWNLOAD_FAILED) {
-                $output->writeln("<error>failed</error>.");
+                $this->output->writeln("<error>failed</error>.");
             }
         }
     }

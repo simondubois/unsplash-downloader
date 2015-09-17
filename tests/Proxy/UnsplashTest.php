@@ -42,9 +42,11 @@ class UnsplashTest extends PHPUnit_Framework_TestCase
     public function testDefault()
     {
         $proxy = new Unsplash(static::$downloadPath, 10, null);
-
         $this->assertInstanceOf('Simondubois\UnsplashDownloader\Proxy\Unsplash', $proxy);
+
+
     }
+
 
 
     //

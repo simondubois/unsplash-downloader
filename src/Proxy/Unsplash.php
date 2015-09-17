@@ -1,5 +1,6 @@
 <?php namespace Simondubois\UnsplashDownloader\Proxy;
 
+use Crew\Unsplash\Connection;
 use Crew\Unsplash\HttpClient;
 use Crew\Unsplash\Photo;
 
@@ -9,7 +10,6 @@ class Unsplash
     const DOWNLOAD_SUCCESS = 0;
     const DOWNLOAD_HISTORY = 1;
     const DOWNLOAD_FAILED = 2;
-
 
     private $destination;
     private $quantity;
@@ -25,8 +25,6 @@ class Unsplash
             $this->historyPath = $history;
             $this->historyList = file($this->historyPath);
         }
-
-        $this->connect();
     }
 
     public function __destruct()
@@ -36,13 +34,15 @@ class Unsplash
         }
     }
 
-    private function connect()
+    public function connect()
     {
         HttpClient::init([
             'applicationId' => '797a14e918f07f3559643a10f7c9e0de9d8a94262cd0ea0eb4b12c6d0993ed50',
             'secret' => 'e23d524da1e336251c8559ccc1214bad54a208f04057d984fd7f008e9039c869',
             'callbackUrl' => 'https://github.com/simondubois/unsplash-downloader',
         ]);
+
+        return HttpClient::$connection instanceof Connection;
     }
 
     public function photos() {
