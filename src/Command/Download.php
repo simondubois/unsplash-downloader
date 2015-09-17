@@ -1,6 +1,6 @@
 <?php namespace Simondubois\UnsplashDownloader\Command;
 
-use Exception;
+use InvalidArgumentException;
 use Simondubois\UnsplashDownloader\Proxy\Unsplash;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -100,15 +100,15 @@ class Download extends Command
         $destination = realpath($destination);
 
         if ($destination === false) {
-            throw new Exception("The given destination path ({$option}) does not exists.");
+            throw new InvalidArgumentException("The given destination path ({$option}) does not exists.");
         }
 
         if (is_dir($destination) === false) {
-            throw new Exception("The given destination path ({$destination}) is not a directory.");
+            throw new InvalidArgumentException("The given destination path ({$destination}) is not a directory.");
         }
 
         if (is_writable($destination) === false) {
-            throw new Exception("The given destination path ({$destination}) is not writable.");
+            throw new InvalidArgumentException("The given destination path ({$destination}) is not writable.");
         }
 
         return $destination;
@@ -123,17 +123,17 @@ class Download extends Command
     private function quantity($option)
     {
         if (is_numeric($option) === false) {
-            throw new Exception("The given quantity ({$option}) is not numeric.");
+            throw new InvalidArgumentException("The given quantity ({$option}) is not numeric.");
         }
 
         $quantity = intval($option);
 
         if ($quantity < 0) {
-            throw new Exception("The given quantity ({$option}) is not positive.");
+            throw new InvalidArgumentException("The given quantity ({$option}) is not positive.");
         }
 
         if ($quantity >= 100) {
-            throw new Exception("The given quantity ({$option}) is too high (should be lower than 100).");
+            throw new InvalidArgumentException("The given quantity ({$option}) is too high (should be lower than 100).");
         }
 
         return $quantity;
@@ -154,13 +154,13 @@ class Download extends Command
         $history = $this->resolvedPath($option);
 
         if (is_dir($history) === true) {
-            throw new Exception("The given history path ({$history}) is not a file.");
+            throw new InvalidArgumentException("The given history path ({$history}) is not a file.");
         }
 
         $handle = @fopen($history, 'a+');
 
         if ($handle === false) {
-            throw new Exception("The given history path ({$option}) can not be opened for read & write.");
+            throw new InvalidArgumentException("The given history path ({$option}) can not be opened for read & write.");
         }
 
         fclose($handle);
