@@ -1,7 +1,15 @@
 <phpunit bootstrap="vendor/autoload.php">
-  <testsuites>
-    <testsuite>
-      <directory>tests</directory>
-    </testsuite>
-  </testsuites>
+    <testsuites>
+        <testsuite>
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <logging>
+        <log type="coverage-html" target="./tests/coverage" charset="UTF-8"/>
+    </logging>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory>src</directory>
+        </whitelist>
+    </filter>
 </phpunit>
