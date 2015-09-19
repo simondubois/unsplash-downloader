@@ -2,7 +2,7 @@
 
 use PHPUnit_Framework_TestCase;
 
-class BaseTest extends PHPUnit_Framework_TestCase
+class TestBase extends PHPUnit_Framework_TestCase
 {
     public static function getDownloadPath()
     {

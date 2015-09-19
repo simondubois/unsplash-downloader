@@ -1,9 +1,9 @@
 <?php namespace Tests\Proxy;
 
-use PHPUnit_Framework_TestCase;
+use Tests\TestBase;
 use Simondubois\UnsplashDownloader\Proxy\Unsplash;
 
-class UnsplashTest extends PHPUnit_Framework_TestCase
+class UnsplashTest extends TestBase
 {
     /**
      * @dataProvider validParameterProvider
