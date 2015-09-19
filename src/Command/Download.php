@@ -52,27 +52,27 @@ class Download extends Command
 
         $proxy = $this->connect($destination, $quantity, $history);
 
-        $this->download($proxy);
+        $this->processDownload($proxy);
     }
 
     protected function parameters($input, &$destination, &$quantity, &$history)
     {
         $destination = $this->destination($input->getOption('destination'));
-        if ($this->output->isVerbose()) {
+        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
             $this->output->writeln("Download photos to {$destination}.");
         }
 
         $quantity = $this->quantity($input->getOption('quantity'));
-        if ($this->output->isVerbose()) {
+        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
             $this->output->writeln("Download the last {$quantity} photos.");
         }
 
         $history = $this->history($input->getOption('history'));
-        if ($this->output->isVerbose()) {
+        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
             if (is_string($history)) {
                 $this->output->writeln("Use {$history} as history.");
             } else {
-                $this->output->writeln("Do not use history.");
+                $this->output->writeln('Do not use history.');
             }
         }
     }
@@ -81,30 +81,32 @@ class Download extends Command
     {
         $proxy = new Unsplash($destination, $quantity, $history);
 
-        if ($this->output->isVerbose()) {
-            $this->output->write("Connect to unsplash... ");
+        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
+            $this->output->write('Connect to unsplash... ');
         }
 
         $connection = $proxy->isConnectionSuccessful();
 
-        if ($connection === false && $this->output->isVerbose()) {
-            $this->output->writeln("<error>failed</error>.");
+        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
+            if ($connection === false) {
+                $this->output->writeln('<error>failed</error>.');
+            } else {
+                $this->output->writeln('<info>success</info>.');
+            }
         }
 
         if ($connection === false) {
-            throw new Exception("Can not connect to unsplash (check your Internet connection");
+            throw new Exception('Can not connect to unsplash (check your Internet connection');
         }
-
-        $this->output->writeln("<info>success</info>.");
 
         return $proxy;
     }
 
-    protected function download($proxy)
+    protected function processDownload($proxy)
     {
         foreach ($proxy->photos() as $photo) {
-            if ($this->output->isVerbose()) {
-                $source = $proxy->photoSource($photo);
+            if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
+                $source      = $proxy->photoSource($photo);
                 $destination = $proxy->photoDestination($photo);
 
                 $this->output->write("Download photo from {$source} to {$destination}... ");
@@ -112,11 +114,11 @@ class Download extends Command
 
             $status = $proxy->download($photo);
             if ($status === Unsplash::DOWNLOAD_SUCCESS) {
-                $this->output->writeln("<info>success</info>.");
+                $this->output->writeln('<info>success</info>.');
             } elseif ($status === Unsplash::DOWNLOAD_HISTORY) {
-                $this->output->writeln("<comment>ignored (in history)</comment>.");
+                $this->output->writeln('<comment>ignored (in history)</comment>.');
             } elseif ($status === Unsplash::DOWNLOAD_FAILED) {
-                $this->output->writeln("<error>failed</error>.");
+                $this->output->writeln('<error>failed</error>.');
             }
         }
     }
@@ -124,16 +126,16 @@ class Download extends Command
 
 
     //
-    // Handle option "destination"
+    // Handle parameter "destination"
     //
 
-    private function destination($option)
+    private function destination($parameter)
     {
-        $destination = $this->resolvedPath($option);
+        $destination = $this->resolvedPath($parameter);
         $destination = realpath($destination);
 
         if ($destination === false) {
-            throw new InvalidArgumentException("The given destination path ({$option}) does not exists.");
+            throw new InvalidArgumentException("The given destination path ({$parameter}) does not exists.");
         }
 
         if (is_dir($destination) === false) {
@@ -150,23 +152,25 @@ class Download extends Command
 
 
     //
-    // Handle option "quantity"
+    // Handle parameter "quantity"
     //
 
-    private function quantity($option)
+    private function quantity($parameter)
     {
-        if (is_numeric($option) === false) {
-            throw new InvalidArgumentException("The given quantity ({$option}) is not numeric.");
+        if (is_numeric($parameter) === false) {
+            throw new InvalidArgumentException("The given quantity ({$parameter}) is not numeric.");
         }
 
-        $quantity = intval($option);
+        $quantity = intval($parameter);
 
         if ($quantity < 0) {
-            throw new InvalidArgumentException("The given quantity ({$option}) is not positive.");
+            throw new InvalidArgumentException("The given quantity ({$parameter}) is not positive.");
         }
 
         if ($quantity >= 100) {
-            throw new InvalidArgumentException("The given quantity ({$option}) is too high (should be lower than 100).");
+            throw new InvalidArgumentException(
+                "The given quantity ({$parameter}) is too high (should be lower than 100)."
+            );
         }
 
         return $quantity;
@@ -175,16 +179,21 @@ class Download extends Command
 
 
     //
-    // Handle option "history"
+    // Handle parameter "history"
     //
 
-    private function history($option)
+    /**
+     * Check validity for the history parameter
+     * @param  string $parameter Parameter value
+     * @return string            Validated and formatted history value
+     */
+    private function history($parameter)
     {
-        if (is_null($option)) {
-            return $option;
+        if (is_null($parameter)) {
+            return $parameter;
         }
 
-        $history = $this->resolvedPath($option);
+        $history = $this->resolvedPath($parameter);
 
         if (is_dir($history) === true) {
             throw new InvalidArgumentException("The given history path ({$history}) is not a file.");
@@ -193,7 +202,9 @@ class Download extends Command
         $handle = @fopen($history, 'a+');
 
         if ($handle === false) {
-            throw new InvalidArgumentException("The given history path ({$option}) can not be opened for read & write.");
+            throw new InvalidArgumentException(
+                "The given history path ({$parameter}) can not be opened for read & write."
+            );
         }
 
         fclose($handle);
@@ -208,6 +219,11 @@ class Download extends Command
     // Helpers
     //
 
+    /**
+     * Resolve relative path or return absolute path
+     * @param  string $path Relative or absolute path
+     * @return string       Absolute path
+     */
     private function resolvedPath($path)
     {
         if (substr($path, 0, 1) !== '/') {
