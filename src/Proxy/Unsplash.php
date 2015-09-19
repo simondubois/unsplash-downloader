@@ -23,7 +23,10 @@ class Unsplash
 
         if (is_string($history)) {
             $this->historyPath = $history;
-            $this->historyList = file($this->historyPath);
+
+            if (is_file($this->historyPath)) {
+                $this->historyList = file($this->historyPath, FILE_IGNORE_NEW_LINES);
+            }
         }
     }
 
@@ -50,7 +53,7 @@ class Unsplash
     }
 
     public function download(Photo $photo) {
-        if (in_array($photo->id."\n", $this->historyList)) {
+        if (in_array($photo->id, $this->historyList)) {
             return self::DOWNLOAD_HISTORY;
         }
 
@@ -61,7 +64,9 @@ class Unsplash
             return self::DOWNLOAD_FAILED;
         }
 
-        $this->historyList[] = $photo->id;
+        if (is_string($this->historyPath)) {
+            $this->historyList[] = $photo->id;
+        }
 
         return self::DOWNLOAD_SUCCESS;
     }
