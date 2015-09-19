@@ -2,50 +2,46 @@
 
 use PHPUnit_Framework_TestCase;
 
-class TestBase extends PHPUnit_Framework_TestCase
+abstract class TestBase extends PHPUnit_Framework_TestCase
 {
-    public static function getDownloadPath()
+    public function destination()
     {
         return getcwd().'/tests/tmp';
     }
 
+    public function quantity()
+    {
+        return 1;
+    }
+
+    abstract public function history();
+
     public function setUp()
     {
-        $downloadPath = $this->getDownloadPath();
+        $destination = $this->destination();
 
-        if (is_file($downloadPath)) {
-            throw new Exception('Path "'.$downloadPath.'" should not be a file.');
+        if (is_file($destination)) {
+            throw new Exception('Path "'.$destination.'" should not be a file.');
         }
 
-        if (is_dir($downloadPath)) {
-            static::emptyDirectory($downloadPath);
+        if (is_dir($destination)) {
+            static::emptyDirectory($destination);
         } else {
-            $mkdir = mkdir($downloadPath);
+            $mkdir = mkdir($destination);
 
             if ($mkdir === false) {
-                throw new Exception('Directory "'.$downloadPath.'" can not be created.');
+                throw new Exception('Directory "'.$destination.'" can not be created.');
             }
         }
 
-        touch($downloadPath.'/existing_history.txt');
+        touch($destination.'/existing_history.txt');
     }
 
     public function tearDown()
     {
-        static::emptyDirectory($this->getDownloadPath());
+        static::emptyDirectory($this->destination());
     }
 
-
-    public function validParameterProvider()
-    {
-        $downloadPath = $this->getDownloadPath();
-
-        return [
-            'no history' => [$downloadPath, 1, null],
-            'new history' => [$downloadPath, 1, $downloadPath.'/new_history.txt'],
-            'existing history' => [$downloadPath, 1, $downloadPath.'/existing_history.txt'],
-        ];
-    }
 
     public static function emptyDirectory($path)
     {

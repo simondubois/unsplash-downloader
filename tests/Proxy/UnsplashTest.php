@@ -3,26 +3,21 @@
 use Tests\TestBase;
 use Simondubois\UnsplashDownloader\Proxy\Unsplash;
 
-class UnsplashTest extends TestBase
+abstract class UnsplashTest extends TestBase
 {
-    /**
-     * @dataProvider validParameterProvider
-     */
-    public function testConstruct($destination, $quantity, $history)
+    public function testConstruct()
     {
-        $proxy = new Unsplash($destination, $quantity, $history);
+        $proxy = new Unsplash($this->destination(), $this->quantity(), $this->history());
         $this->assertInstanceOf('Simondubois\UnsplashDownloader\Proxy\Unsplash', $proxy);
 
         return $proxy;
     }
 
     /**
-     * @dataProvider validParameterProvider
+     * @depends testConstruct
      */
-    public function testConnection($destination, $quantity, $history)
+    public function testConnection($proxy)
     {
-        $proxy = $this->testConstruct($destination, $quantity, $history);
-
         $connection = $proxy->isConnectionSuccessful();
         $this->assertTrue($connection);
 
@@ -30,27 +25,23 @@ class UnsplashTest extends TestBase
     }
 
     /**
-     * @dataProvider validParameterProvider
+     * @depends testConnection
      */
-    public function testPhotos($destination, $quantity, $history)
+    public function testPhotos($proxy)
     {
-        $proxy = $this->testConnection($destination, $quantity, $history);
-
         $photos = $proxy->photos();
-        $this->assertCount($quantity, $photos);
+        $this->assertCount($this->quantity(), $photos);
         $this->assertContainsOnlyInstancesOf('Crew\Unsplash\Photo', $photos);
 
         return $photos;
     }
 
     /**
-     * @dataProvider validParameterProvider
+     * @depends testConnection
+     * @depends testPhotos
      */
-    public function testPhotoSource($destination, $quantity, $history)
+    public function testPhotoSource($proxy, $photos)
     {
-        $proxy = $this->testConnection($destination, $quantity, $history);
-
-        $photos = $proxy->photos();
         foreach ($photos as $photo) {
             $photoSource = $proxy->photoSource($photo);
             $this->assertEquals($photo->links['download'], $photoSource);
@@ -60,34 +51,30 @@ class UnsplashTest extends TestBase
     }
 
     /**
-     * @dataProvider validParameterProvider
+     * @depends testConnection
+     * @depends testPhotos
      */
-    public function testPhotoDestination($destination, $quantity, $history)
+    public function testPhotoDestination($proxy, $photos)
     {
-        $proxy = $this->testConnection($destination, $quantity, $history);
-
-        $photos = $proxy->photos();
         foreach ($photos as $photo) {
             $photoDestination = $proxy->photoDestination($photo);
-            $this->assertEquals($destination.'/'.$photo->id.'.jpg', $photoDestination);
+            $this->assertEquals($this->destination().'/'.$photo->id.'.jpg', $photoDestination);
         }
 
         return $proxy;
     }
 
     /**
-     * @dataProvider validParameterProvider
+     * @depends testConnection
+     * @depends testPhotos
      */
-    public function testDownload($destination, $quantity, $history)
+    public function testDownload($proxy, $photos)
     {
-        $proxy = $this->testConnection($destination, $quantity, $history);
-
-        $photos = $proxy->photos();
         foreach ($photos as $photo) {
-            $permissions = fileperms($destination);
-            chmod($destination, 0000);
+            $permissions = fileperms($this->destination());
+            chmod($this->destination(), 0000);
             $download = $proxy->download($photo);
-            chmod($destination, $permissions);
+            chmod($this->destination(), $permissions);
             $this->assertEquals(Unsplash::DOWNLOAD_FAILED, $download);
 
             $download = $proxy->download($photo);
@@ -95,14 +82,36 @@ class UnsplashTest extends TestBase
             $this->assertFileExists($proxy->photoDestination($photo));
 
             $download = $proxy->download($photo);
-            if (is_string($history)) {
+            if (is_string($this->history())) {
                 $this->assertEquals(Unsplash::DOWNLOAD_HISTORY, $download);
             } else {
                 $this->assertEquals(Unsplash::DOWNLOAD_SUCCESS, $download);
             }
         }
 
-        $files = scandir($destination);
-        $this->assertCount($quantity + 3, $files);
+        $files = scandir($this->destination());
+        $this->assertCount($this->quantity() + 3, $files);
+    }
+
+    /**
+     * @depends testConnection
+     * @depends testPhotos
+     */
+    public function testDestruct($proxy, $photos)
+    {
+        $proxy->__destruct();
+
+        $history = $this->history();
+        if (is_null($history)) {
+            return;
+        }
+
+        $historyList = [];
+        foreach ($photos as $photo) {
+            $historyList[] = $photo->id;
+        }
+
+        $this->assertFileExists($history);
+        $this->assertEquals(implode(PHP_EOL, $historyList), file_get_contents($history));
     }
 }
