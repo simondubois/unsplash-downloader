@@ -9,7 +9,7 @@ class Unsplash
 
     const DOWNLOAD_SUCCESS = 0;
     const DOWNLOAD_HISTORY = 1;
-    const DOWNLOAD_FAILED = 2;
+    const DOWNLOAD_FAILED  = 2;
 
     private $destination;
     private $quantity;
@@ -19,7 +19,7 @@ class Unsplash
     public function __construct($destination, $quantity, $history)
     {
         $this->destination = $destination;
-        $this->quantity = $quantity;
+        $this->quantity    = $quantity;
 
         if (is_string($history)) {
             $this->historyPath = $history;
@@ -37,7 +37,7 @@ class Unsplash
         }
     }
 
-    public function connect()
+    public function isConnectionSuccessful()
     {
         HttpClient::init([
             'applicationId' => '797a14e918f07f3559643a10f7c9e0de9d8a94262cd0ea0eb4b12c6d0993ed50',
@@ -57,7 +57,7 @@ class Unsplash
             return self::DOWNLOAD_HISTORY;
         }
 
-        $source = $this->photoSource($photo);
+        $source      = $this->photoSource($photo);
         $destination = $this->photoDestination($photo);
 
         if (@copy($source, $destination) === false) {

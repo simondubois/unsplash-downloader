@@ -85,13 +85,13 @@ class Download extends Command
             $this->output->write("Connect to unsplash... ");
         }
 
-        $connect = $proxy->connect();
+        $connection = $proxy->isConnectionSuccessful();
 
-        if ($connect === false && $this->output->isVerbose()) {
+        if ($connection === false && $this->output->isVerbose()) {
             $this->output->writeln("<error>failed</error>.");
         }
 
-        if ($connect === false) {
+        if ($connection === false) {
             throw new Exception("Can not connect to unsplash (check your Internet connection");
         }
 

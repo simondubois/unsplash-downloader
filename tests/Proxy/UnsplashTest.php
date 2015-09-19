@@ -5,60 +5,8 @@ use Simondubois\UnsplashDownloader\Proxy\Unsplash;
 
 class UnsplashTest extends PHPUnit_Framework_TestCase
 {
-
-    //
-    // PREPARE TEST
-    //
-
-    public static function getDownloadPath() {
-        return getcwd().'/tests/tmp';
-    }
-
-    public function setUp()
-    {
-        $downloadPath = $this->getDownloadPath();
-
-        if (is_file($downloadPath)) {
-            throw new Exception('Path "'.$downloadPath.'" should not be a file.');
-        }
-
-        if (is_dir($downloadPath)) {
-            static::emptyDirectory($downloadPath);
-        } else {
-            $mkdir = mkdir($downloadPath);
-
-            if ($mkdir === false) {
-                throw new Exception('Directory "'.$downloadPath.'" can not be created.');
-            }
-        }
-
-        touch($downloadPath.'/existing_history.txt');
-    }
-
-    public function tearDown()
-    {
-        static::emptyDirectory($this->getDownloadPath());
-    }
-
-
-    public function parameterProvider() {
-        $downloadPath = $this->getDownloadPath();
-
-        return [
-            'no history' => [$downloadPath, 1, null],
-            'new history' => [$downloadPath, 1, $downloadPath.'/new_history.txt'],
-            'existing history' => [$downloadPath, 1, $downloadPath.'/existing_history.txt'],
-        ];
-    }
-
-
-
-    //
-    // UNIT TESTS
-    //
-
     /**
-     * @dataProvider parameterProvider
+     * @dataProvider validParameterProvider
      */
     public function testConstruct($destination, $quantity, $history)
     {
@@ -69,24 +17,24 @@ class UnsplashTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider parameterProvider
+     * @dataProvider validParameterProvider
      */
-    public function testConnect($destination, $quantity, $history)
+    public function testConnection($destination, $quantity, $history)
     {
         $proxy = $this->testConstruct($destination, $quantity, $history);
 
-        $connect = $proxy->connect();
-        $this->assertTrue($connect);
+        $connection = $proxy->isConnectionSuccessful();
+        $this->assertTrue($connection);
 
         return $proxy;
     }
 
     /**
-     * @dataProvider parameterProvider
+     * @dataProvider validParameterProvider
      */
     public function testPhotos($destination, $quantity, $history)
     {
-        $proxy = $this->testConnect($destination, $quantity, $history);
+        $proxy = $this->testConnection($destination, $quantity, $history);
 
         $photos = $proxy->photos();
         $this->assertCount($quantity, $photos);
@@ -96,11 +44,11 @@ class UnsplashTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider parameterProvider
+     * @dataProvider validParameterProvider
      */
     public function testPhotoSource($destination, $quantity, $history)
     {
-        $proxy = $this->testConnect($destination, $quantity, $history);
+        $proxy = $this->testConnection($destination, $quantity, $history);
 
         $photos = $proxy->photos();
         foreach ($photos as $photo) {
@@ -112,11 +60,11 @@ class UnsplashTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider parameterProvider
+     * @dataProvider validParameterProvider
      */
     public function testPhotoDestination($destination, $quantity, $history)
     {
-        $proxy = $this->testConnect($destination, $quantity, $history);
+        $proxy = $this->testConnection($destination, $quantity, $history);
 
         $photos = $proxy->photos();
         foreach ($photos as $photo) {
@@ -128,11 +76,11 @@ class UnsplashTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider parameterProvider
+     * @dataProvider validParameterProvider
      */
     public function testDownload($destination, $quantity, $history)
     {
-        $proxy = $this->testConnect($destination, $quantity, $history);
+        $proxy = $this->testConnection($destination, $quantity, $history);
 
         $photos = $proxy->photos();
         foreach ($photos as $photo) {
@@ -156,28 +104,5 @@ class UnsplashTest extends PHPUnit_Framework_TestCase
 
         $files = scandir($destination);
         $this->assertCount($quantity + 3, $files);
-    }
-
-
-
-    //
-    // HELPERS
-    //
-
-    public static function emptyDirectory($path) {
-        $files = scandir($path);
-
-        foreach ($files as $file) {
-            if ($file === '.' || $file === '..') {
-                continue;
-            }
-
-            $unlink = unlink("$path/$file");
-
-            if ($unlink === false) {
-                throw new Exception('Can not empty directory "'.$path.'".');
-            }
-        }
-
     }
 }
