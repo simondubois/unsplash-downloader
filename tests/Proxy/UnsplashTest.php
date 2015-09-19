@@ -10,37 +10,44 @@ class UnsplashTest extends PHPUnit_Framework_TestCase
     // PREPARE TEST
     //
 
-    private static $downloadPath;
+    public static function getDownloadPath() {
+        return getcwd().'/tests/tmp';
+    }
 
     public function setUp()
     {
-        if (is_file(static::$downloadPath)) {
-            throw new Exception('Path "'.static::$downloadPath.'" should not be a file.');
-        } elseif (is_dir(static::$downloadPath)) {
-            static::emptyDirectory(static::$downloadPath);
+        $downloadPath = $this->getDownloadPath();
+
+        if (is_file($downloadPath)) {
+            throw new Exception('Path "'.$downloadPath.'" should not be a file.');
+        }
+
+        if (is_dir($downloadPath)) {
+            static::emptyDirectory($downloadPath);
         } else {
-            $mkdir = mkdir(static::$downloadPath);
+            $mkdir = mkdir($downloadPath);
+
             if ($mkdir === false) {
-                throw new Exception('Directory "'.static::$downloadPath.'" can not be created.');
+                throw new Exception('Directory "'.$downloadPath.'" can not be created.');
             }
         }
 
-        touch(static::$downloadPath.'/existing_history.txt');
+        touch($downloadPath.'/existing_history.txt');
     }
 
     public function tearDown()
     {
-        static::emptyDirectory(static::$downloadPath);
+        static::emptyDirectory($this->getDownloadPath());
     }
 
 
     public function parameterProvider() {
-        static::$downloadPath = getcwd().'/tests/tmp';
+        $downloadPath = $this->getDownloadPath();
 
         return [
-            [static::$downloadPath, 1, null],
-            [static::$downloadPath, 1, static::$downloadPath.'/new_history.txt'],
-            [static::$downloadPath, 1, static::$downloadPath.'/existing_history.txt'],
+            'no history' => [$downloadPath, 1, null],
+            'new history' => [$downloadPath, 1, $downloadPath.'/new_history.txt'],
+            'existing history' => [$downloadPath, 1, $downloadPath.'/existing_history.txt'],
         ];
     }
 
@@ -129,9 +136,6 @@ class UnsplashTest extends PHPUnit_Framework_TestCase
 
         $photos = $proxy->photos();
         foreach ($photos as $photo) {
-            $photoSource = $proxy->photoSource($photo);
-            $photoDestination = $proxy->photoDestination($photo);
-
             $permissions = fileperms($destination);
             chmod($destination, 0000);
             $download = $proxy->download($photo);
@@ -140,7 +144,7 @@ class UnsplashTest extends PHPUnit_Framework_TestCase
 
             $download = $proxy->download($photo);
             $this->assertEquals(Unsplash::DOWNLOAD_SUCCESS, $download);
-            $this->assertFileExists($photoDestination);
+            $this->assertFileExists($proxy->photoDestination($photo));
 
             $download = $proxy->download($photo);
             if (is_string($history)) {
