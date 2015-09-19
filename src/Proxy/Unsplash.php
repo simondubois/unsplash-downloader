@@ -71,11 +71,21 @@ class Unsplash
         return self::DOWNLOAD_SUCCESS;
     }
 
+    /**
+     * Get the download source URL for the given photo
+     * @param  Photo  $photo Photo to process
+     * @return string        Source url
+     */
     public function photoSource(Photo $photo) {
         return $photo->links['download'];
     }
 
+    /**
+     * Get the download destination path for the given photo
+     * @param  Photo  $photo Photo to process
+     * @return string        Destination path
+     */
     public function photoDestination(Photo $photo) {
-        return "{$this->destination}/{$photo->id}.jpg";
+        return $this->destination.'/'.$photo->id.'.jpg';
     }
 }

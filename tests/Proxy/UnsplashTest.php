@@ -69,7 +69,7 @@ class UnsplashTest extends PHPUnit_Framework_TestCase
         $photos = $proxy->photos();
         foreach ($photos as $photo) {
             $photoDestination = $proxy->photoDestination($photo);
-            $this->assertEquals("$destination/{$photo->id}.jpg", $photoDestination);
+            $this->assertEquals($destination.'/'.$photo->id.'.jpg', $photoDestination);
         }
 
         return $proxy;

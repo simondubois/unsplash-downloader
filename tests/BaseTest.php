@@ -56,7 +56,7 @@ class BaseTest extends PHPUnit_Framework_TestCase
                 continue;
             }
 
-            $unlink = unlink("$path/$file");
+            $unlink = unlink($path.'/'.$file);
 
             if ($unlink === false) {
                 throw new Exception('Can not empty directory "'.$path.'".');

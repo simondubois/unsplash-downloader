@@ -59,18 +59,18 @@ class Download extends Command
     {
         $destination = $this->destination($input->getOption('destination'));
         if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
-            $this->output->writeln("Download photos to {$destination}.");
+            $this->output->writeln('Download photos to '.$destination.'.');
         }
 
         $quantity = $this->quantity($input->getOption('quantity'));
         if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
-            $this->output->writeln("Download the last {$quantity} photos.");
+            $this->output->writeln('Download the last '.$quantity.' photos.');
         }
 
         $history = $this->history($input->getOption('history'));
         if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
             if (is_string($history)) {
-                $this->output->writeln("Use {$history} as history.");
+                $this->output->writeln('Use '.$history.' as history.');
             } else {
                 $this->output->writeln('Do not use history.');
             }
@@ -109,7 +109,7 @@ class Download extends Command
                 $source      = $proxy->photoSource($photo);
                 $destination = $proxy->photoDestination($photo);
 
-                $this->output->write("Download photo from {$source} to {$destination}... ");
+                $this->output->write('Download photo from '.$source.' to '.$destination.'... ');
             }
 
             $status = $proxy->download($photo);
@@ -135,15 +135,15 @@ class Download extends Command
         $destination = realpath($destination);
 
         if ($destination === false) {
-            throw new InvalidArgumentException("The given destination path ({$parameter}) does not exists.");
+            throw new InvalidArgumentException('The given destination path ('.$parameter.') does not exists.');
         }
 
         if (is_dir($destination) === false) {
-            throw new InvalidArgumentException("The given destination path ({$destination}) is not a directory.");
+            throw new InvalidArgumentException('The given destination path ('.$destination.') is not a directory.');
         }
 
         if (is_writable($destination) === false) {
-            throw new InvalidArgumentException("The given destination path ({$destination}) is not writable.");
+            throw new InvalidArgumentException('The given destination path ('.$destination.') is not writable.');
         }
 
         return $destination;
@@ -158,18 +158,18 @@ class Download extends Command
     private function quantity($parameter)
     {
         if (is_numeric($parameter) === false) {
-            throw new InvalidArgumentException("The given quantity ({$parameter}) is not numeric.");
+            throw new InvalidArgumentException('The given quantity ('.$parameter.') is not numeric.');
         }
 
         $quantity = intval($parameter);
 
         if ($quantity < 0) {
-            throw new InvalidArgumentException("The given quantity ({$parameter}) is not positive.");
+            throw new InvalidArgumentException('The given quantity ('.$parameter.') is not positive.');
         }
 
         if ($quantity >= 100) {
             throw new InvalidArgumentException(
-                "The given quantity ({$parameter}) is too high (should be lower than 100)."
+                'The given quantity ('.$parameter.') is too high (should be lower than 100).'
             );
         }
 
@@ -185,7 +185,7 @@ class Download extends Command
     /**
      * Check validity for the history parameter
      * @param  string $parameter Parameter value
-     * @return string            Validated and formatted history value
+     * @return null|string       Validated and formatted history value
      */
     private function history($parameter)
     {
@@ -196,14 +196,14 @@ class Download extends Command
         $history = $this->resolvedPath($parameter);
 
         if (is_dir($history) === true) {
-            throw new InvalidArgumentException("The given history path ({$history}) is not a file.");
+            throw new InvalidArgumentException('The given history path ('.$history.') is not a file.');
         }
 
         $handle = @fopen($history, 'a+');
 
         if ($handle === false) {
             throw new InvalidArgumentException(
-                "The given history path ({$parameter}) can not be opened for read & write."
+                'The given history path ('.$parameter.') can not be opened for read & write.'
             );
         }
 
