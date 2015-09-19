@@ -11,7 +11,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Simondubois\\UnsplashDownloader\\": "src/"
+            "Simondubois\\UnsplashDownloader\\": "src/",
+            "Tests\\": "tests/"
         }
     }
 }
