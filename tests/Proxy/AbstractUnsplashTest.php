@@ -1,10 +1,16 @@
 <?php namespace Tests\Proxy;
 
-use Tests\TestBase;
+use Tests\AbstractTest;
 use Simondubois\UnsplashDownloader\Proxy\Unsplash;
 
-abstract class UnsplashTest extends TestBase
+abstract class AbstractUnsplashTest extends AbstractTest
 {
+    /**
+     * Get value for the history parameter
+     * @return string History filename
+     */
+    abstract public function history();
+
     public function testConstruct()
     {
         $proxy = new Unsplash($this->destination(), $this->quantity(), $this->history());
@@ -90,7 +96,11 @@ abstract class UnsplashTest extends TestBase
         }
 
         $files = scandir($this->destination());
-        $this->assertCount($this->quantity() + 3, $files);
+        if ($this->history() === $this->destination().'/existing_history.txt') {
+            $this->assertCount($this->quantity() + 3, $files);
+        } else {
+            $this->assertCount($this->quantity() + 2, $files);
+        }
     }
 
     /**

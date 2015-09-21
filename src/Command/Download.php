@@ -104,7 +104,15 @@ class Download extends Command
 
     protected function processDownload($proxy)
     {
-        foreach ($proxy->photos() as $photo) {
+        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
+            $this->output->write('Get photo list from unsplash... ');
+        }
+        $photos = $proxy->photos();
+        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
+            $this->output->writeln('<info>success</info>.');
+        }
+
+        foreach ($photos as $photo) {
             if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
                 $source      = $proxy->photoSource($photo);
                 $destination = $proxy->photoDestination($photo);

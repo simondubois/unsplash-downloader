@@ -2,7 +2,7 @@
 
 use PHPUnit_Framework_TestCase;
 
-abstract class TestBase extends PHPUnit_Framework_TestCase
+abstract class AbstractTest extends PHPUnit_Framework_TestCase
 {
     public function destination()
     {
@@ -13,8 +13,6 @@ abstract class TestBase extends PHPUnit_Framework_TestCase
     {
         return 1;
     }
-
-    abstract public function history();
 
     public function setUp()
     {
@@ -33,8 +31,6 @@ abstract class TestBase extends PHPUnit_Framework_TestCase
                 throw new Exception('Directory "'.$destination.'" can not be created.');
             }
         }
-
-        touch($destination.'/existing_history.txt');
     }
 
     public function tearDown()
