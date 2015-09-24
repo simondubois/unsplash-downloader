@@ -139,8 +139,11 @@ class Download extends Command
 
     private function destination($parameter)
     {
-        $destination = $this->resolvedPath($parameter);
-        $destination = realpath($destination);
+        if (strstr($parameter, '://') === false) {
+            $destination = realpath($parameter);
+        } else {
+            $destination = $parameter;
+        }
 
         if ($destination === false) {
             throw new InvalidArgumentException('The given destination path ('.$parameter.') does not exists.');
@@ -195,13 +198,11 @@ class Download extends Command
      * @param  string $parameter Parameter value
      * @return null|string       Validated and formatted history value
      */
-    private function history($parameter)
+    private function history($history)
     {
-        if (is_null($parameter)) {
-            return $parameter;
+        if (is_null($history)) {
+            return null;
         }
-
-        $history = $this->resolvedPath($parameter);
 
         if (is_dir($history) === true) {
             throw new InvalidArgumentException('The given history path ('.$history.') is not a file.');
@@ -211,7 +212,7 @@ class Download extends Command
 
         if ($handle === false) {
             throw new InvalidArgumentException(
-                'The given history path ('.$parameter.') can not be opened for read & write.'
+                'The given history path ('.$history.') can not be opened for read & write.'
             );
         }
 
@@ -219,26 +220,4 @@ class Download extends Command
 
         return $history;
     }
-
-
-
-
-    //
-    // Helpers
-    //
-
-    /**
-     * Resolve relative path or return absolute path
-     * @param  string $path Relative or absolute path
-     * @return string       Absolute path
-     */
-    private function resolvedPath($path)
-    {
-        if (substr($path, 0, 1) !== '/') {
-            $path = getcwd().'/'.$path;
-        }
-
-        return $path;
-    }
-
 }

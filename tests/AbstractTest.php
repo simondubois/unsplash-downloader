@@ -1,58 +1,38 @@
 <?php namespace Tests;
 
+use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit_Framework_TestCase;
 
 abstract class AbstractTest extends PHPUnit_Framework_TestCase
 {
-    public function destination()
+    public function validParameterProvider()
     {
-        return getcwd().'/tests/tmp';
-    }
+        $root = new vfsStreamDirectory('test');
 
-    public function quantity()
-    {
-        return 1;
+        return [
+            [$root->url(), 1, null],
+            [$root->url(), 1, $root->url().'/new_history.txt'],
+            [$root->url(), 1, $root->url().'/existing_history.txt'],
+        ];
     }
 
     public function setUp()
     {
-        $destination = $this->destination();
-
-        if (is_file($destination)) {
-            throw new Exception('Path "'.$destination.'" should not be a file.');
-        }
-
-        if (is_dir($destination)) {
-            static::emptyDirectory($destination);
-        } else {
-            $mkdir = mkdir($destination);
-
-            if ($mkdir === false) {
-                throw new Exception('Directory "'.$destination.'" can not be created.');
-            }
-        }
+        vfsStream::setup('test');
     }
 
-    public function tearDown()
+    protected function mockProxy($arguments, $methods)
     {
-        static::emptyDirectory($this->destination());
-    }
+        $proxy = $this->getMockBuilder('Simondubois\UnsplashDownloader\Proxy\Unsplash')
+            ->setMethods(array_keys($methods))
+            ->setConstructorArgs($arguments)
+            ->getMock();
 
-
-    public static function emptyDirectory($path)
-    {
-        $files = scandir($path);
-
-        foreach ($files as $file) {
-            if ($file === '.' || $file === '..') {
-                continue;
-            }
-
-            $unlink = unlink($path.'/'.$file);
-
-            if ($unlink === false) {
-                throw new Exception('Can not empty directory "'.$path.'".');
-            }
+        foreach ($methods as $name => $will) {
+            $proxy->method($name)->will($will);
         }
+
+        return $proxy;
     }
 }

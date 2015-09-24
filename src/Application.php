@@ -12,7 +12,7 @@ class Application extends SymfonyApplication
      *
      * @return string The command name
      */
-    protected function getCommandName(InputInterface $input)
+    public function getCommandName(InputInterface $input)
     {
         // This should return the name of your command.
         return 'download';

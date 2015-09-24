@@ -3,5 +3,3 @@ vendor/
 /*.sublime-project
 /*.sublime-workspace
 tests/coverage
-tests/tmp
-

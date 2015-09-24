@@ -60,7 +60,8 @@ class Unsplash
         $source      = $this->photoSource($photo);
         $destination = $this->photoDestination($photo);
 
-        if (@copy($source, $destination) === false) {
+        $ret = $this->processDownload($source, $destination);
+        if ($ret === false) {
             return self::DOWNLOAD_FAILED;
         }
 
@@ -69,6 +70,10 @@ class Unsplash
         }
 
         return self::DOWNLOAD_SUCCESS;
+    }
+
+    public function processDownload($source, $destination) {
+        return @copy($source, $destination);
     }
 
     /**
