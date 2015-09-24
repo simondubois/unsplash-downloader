@@ -10,11 +10,12 @@ class ValidDownloadTest extends AbstractDownloadTest
      */
     public function testValidParameters($destination, $quantity, $history) {
         if (strstr($history, 'existing') === true) {
+            // vfsStream::create([$history => '']);
             vfsStreamWrapper::createFile($history);
         }
 
         $commandTester = $this->commandTester();
-        $parameters = $this->parameters($destination, $quantity, $history);
+        $parameters    = $this->parameters($destination, $quantity, $history);
 
         $commandTester->execute($parameters);
         $this->assertEquals(0, $commandTester->getStatusCode());

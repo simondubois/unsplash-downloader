@@ -137,6 +137,11 @@ class Download extends Command
     // Handle parameter "destination"
     //
 
+    /**
+     * Check validity of the destination parameter
+     * @param  string $parameter Parameter value
+     * @return string            Validated and formatted destination value
+     */
     private function destination($parameter)
     {
         if (strstr($parameter, '://') === false) {
@@ -194,9 +199,9 @@ class Download extends Command
     //
 
     /**
-     * Check validity for the history parameter
-     * @param  string $parameter Parameter value
-     * @return null|string       Validated and formatted history value
+     * Check validity of the history parameter
+     * @param  string $history Parameter value
+     * @return null|string     Validated and formatted history value
      */
     private function history($history)
     {

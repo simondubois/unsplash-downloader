@@ -22,6 +22,12 @@ abstract class AbstractTest extends PHPUnit_Framework_TestCase
         vfsStream::setup('test');
     }
 
+    /**
+     * Mock the Unsplash proxy
+     * @param  array $arguments                        Array of argument for class constructor
+     * @param  array $methods                          Array of methods to mock
+     * @return PHPUnit_Framework_MockObject_MockObject Mocked Unsplash proxy instance
+     */
     protected function mockProxy($arguments, $methods)
     {
         $proxy = $this->getMockBuilder('Simondubois\UnsplashDownloader\Proxy\Unsplash')

@@ -72,6 +72,12 @@ class Unsplash
         return self::DOWNLOAD_SUCCESS;
     }
 
+    /**
+     * Download photo from the source to the destination
+     * @param  string $source      URL to download the photo from
+     * @param  string $destination Path to download the photo to
+     * @return bool                True on success, false on error
+     */
     public function processDownload($source, $destination) {
         return @copy($source, $destination);
     }

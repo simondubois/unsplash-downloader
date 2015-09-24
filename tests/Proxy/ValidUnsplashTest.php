@@ -38,7 +38,7 @@ class ValidUnsplashTest extends AbstractTest
      */
     public function testConnection($destination, $quantity, $history)
     {
-        $proxy = new Unsplash($destination, $quantity, $history);
+        $proxy      = new Unsplash($destination, $quantity, $history);
         $connection = $proxy->isConnectionSuccessful();
 
         $this->assertTrue($connection);
@@ -49,8 +49,8 @@ class ValidUnsplashTest extends AbstractTest
      */
     public function testPhotos($destination, $quantity, $history)
     {
-        $proxy = new Unsplash($destination, $quantity, $history);
-        $connection = $proxy->isConnectionSuccessful();
+        $proxy  = new Unsplash($destination, $quantity, $history);
+        $proxy->isConnectionSuccessful();
         $photos = $proxy->photos();
 
         $this->assertCount($quantity, $photos);
@@ -62,8 +62,8 @@ class ValidUnsplashTest extends AbstractTest
      */
     public function testPhotoSource($destination, $quantity, $history)
     {
-        $proxy = new Unsplash($destination, $quantity, $history);
-        $connection = $proxy->isConnectionSuccessful();
+        $proxy  = new Unsplash($destination, $quantity, $history);
+        $proxy->isConnectionSuccessful();
         $photos = $proxy->photos();
 
         foreach ($photos as $photo) {
@@ -113,7 +113,7 @@ class ValidUnsplashTest extends AbstractTest
         ]);
 
         $destination = new vfsStreamDirectory(substr($destination, 6));
-        $photos = $proxy->photos();
+        $photos      = $proxy->photos();
 
         foreach ($photos as $photo) {
             $download = $proxy->download($photo);
@@ -152,9 +152,7 @@ class ValidUnsplashTest extends AbstractTest
             }),
         ]);
 
-        $destination = new vfsStreamDirectory(substr($destination, 6));
         $photos = $proxy->photos();
-
         foreach ($photos as $photo) {
             $proxy->download($photo);
         }
