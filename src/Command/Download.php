@@ -13,6 +13,19 @@ class Download extends Command
 
     private $output;
 
+    protected function verboseOutput($text, $newLine = true) {
+        if ($this->output->getVerbosity() < OutputInterface::VERBOSITY_VERBOSE) {
+            return;
+        }
+
+        if ($newLine === true) {
+            $this->output->writeln($text);
+            return;
+        }
+
+        $this->output->write($text);
+    }
+
     protected function configure()
     {
         $this
@@ -52,28 +65,22 @@ class Download extends Command
 
         $proxy = $this->connect($destination, $quantity, $history);
 
-        $this->processDownload($proxy);
+        $this->downloadAllPhotos($proxy);
     }
 
     protected function parameters($input, &$destination, &$quantity, &$history)
     {
         $destination = $this->destination($input->getOption('destination'));
-        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
-            $this->output->writeln('Download photos to '.$destination.'.');
-        }
+        $this->verboseOutput('Download photos to '.$destination.'.');
 
         $quantity = $this->quantity($input->getOption('quantity'));
-        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
-            $this->output->writeln('Download the last '.$quantity.' photos.');
-        }
+        $this->verboseOutput('Download the last '.$quantity.' photos.');
 
         $history = $this->history($input->getOption('history'));
-        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
-            if (is_string($history)) {
-                $this->output->writeln('Use '.$history.' as history.');
-            } else {
-                $this->output->writeln('Do not use history.');
-            }
+        if (is_string($history)) {
+            $this->verboseOutput('Use '.$history.' as history.');
+        } else {
+            $this->verboseOutput('Do not use history.');
         }
     }
 
@@ -81,18 +88,13 @@ class Download extends Command
     {
         $proxy = new Unsplash($destination, $quantity, $history);
 
-        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
-            $this->output->write('Connect to unsplash... ');
-        }
-
+        $this->verboseOutput('Connect to unsplash... ', false);
         $connection = $proxy->isConnectionSuccessful();
 
-        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
-            if ($connection === false) {
-                $this->output->writeln('<error>failed</error>.');
-            } else {
-                $this->output->writeln('<info>success</info>.');
-            }
+        if ($connection === false) {
+            $this->verboseOutput('<error>failed</error>.');
+        } else {
+            $this->verboseOutput('<info>success</info>.');
         }
 
         if ($connection === false) {
@@ -102,32 +104,32 @@ class Download extends Command
         return $proxy;
     }
 
-    protected function processDownload($proxy)
+    protected function downloadAllPhotos($proxy)
     {
-        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
-            $this->output->write('Get photo list from unsplash... ');
-        }
+        $this->verboseOutput('Get photo list from unsplash... ', false);
+
         $photos = $proxy->photos();
-        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
-            $this->output->writeln('<info>success</info>.');
-        }
+        $this->verboseOutput('<info>success</info>.');
 
         foreach ($photos as $photo) {
-            if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
-                $source      = $proxy->photoSource($photo);
-                $destination = $proxy->photoDestination($photo);
+            $this->downloadOnePhoto($proxy, $photo);
+        }
+    }
 
-                $this->output->write('Download photo from '.$source.' to '.$destination.'... ');
-            }
+    protected function downloadOnePhoto($proxy, $photo)
+    {
+        $source      = $proxy->photoSource($photo);
+        $destination = $proxy->photoDestination($photo);
 
-            $status = $proxy->download($photo);
-            if ($status === Unsplash::DOWNLOAD_SUCCESS) {
-                $this->output->writeln('<info>success</info>.');
-            } elseif ($status === Unsplash::DOWNLOAD_HISTORY) {
-                $this->output->writeln('<comment>ignored (in history)</comment>.');
-            } elseif ($status === Unsplash::DOWNLOAD_FAILED) {
-                $this->output->writeln('<error>failed</error>.');
-            }
+        $this->verboseOutput('Download photo from '.$source.' to '.$destination.'... ', false);
+
+        $status = $proxy->download($photo);
+        if ($status === Unsplash::DOWNLOAD_SUCCESS) {
+            $this->verboseOutput('<info>success</info>.');
+        } elseif ($status === Unsplash::DOWNLOAD_HISTORY) {
+            $this->verboseOutput('<comment>ignored (in history)</comment>.');
+        } elseif ($status === Unsplash::DOWNLOAD_FAILED) {
+            $this->verboseOutput('<error>failed</error>.');
         }
     }
 

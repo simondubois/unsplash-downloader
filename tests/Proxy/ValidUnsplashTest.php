@@ -1,6 +1,5 @@
 <?php namespace Tests\Proxy;
 
-use Crew\Unsplash\Photo;
 use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamFile;
 use Simondubois\UnsplashDownloader\Proxy\Unsplash;
@@ -49,7 +48,7 @@ class ValidUnsplashTest extends AbstractTest
      */
     public function testPhotos($destination, $quantity, $history)
     {
-        $proxy  = new Unsplash($destination, $quantity, $history);
+        $proxy = $this->mockProxy([$destination, $quantity, $history]);
         $proxy->isConnectionSuccessful();
         $photos = $proxy->photos();
 
@@ -62,7 +61,7 @@ class ValidUnsplashTest extends AbstractTest
      */
     public function testPhotoSource($destination, $quantity, $history)
     {
-        $proxy  = new Unsplash($destination, $quantity, $history);
+        $proxy = $this->mockProxy([$destination, $quantity, $history]);
         $proxy->isConnectionSuccessful();
         $photos = $proxy->photos();
 
@@ -78,8 +77,8 @@ class ValidUnsplashTest extends AbstractTest
      */
     public function testPhotoDestination($destination, $quantity, $history)
     {
-        $proxy = new Unsplash($destination, $quantity, $history);
-        $connection = $proxy->isConnectionSuccessful();
+        $proxy = $this->mockProxy([$destination, $quantity, $history]);
+        $proxy->isConnectionSuccessful();
         $photos = $proxy->photos();
 
         foreach ($photos as $photo) {
@@ -96,21 +95,7 @@ class ValidUnsplashTest extends AbstractTest
      */
     public function testDownload($destination, $quantity, $history)
     {
-        $proxy = $this->mockProxy([$destination, $quantity, $history], [
-            'processDownload' => $this->returnCallback(function ($source, $destination) {
-                return touch($destination);
-            }),
-            'photos' => $this->returnCallback(function () use ($quantity) {
-                $photos = [];
-                for ($i = 1; $i <= $quantity; ++$i) {
-                    $photos[] = new Photo([
-                        'id' => 'picture'.$i,
-                        'links' => ['download' => 'http://url/to/picture'.$i],
-                    ]);
-                }
-                return $photos;
-            }),
-        ]);
+        $proxy = $this->mockProxy([$destination, $quantity, $history]);
 
         $destination = new vfsStreamDirectory(substr($destination, 6));
         $photos      = $proxy->photos();
@@ -136,21 +121,7 @@ class ValidUnsplashTest extends AbstractTest
      */
     public function testDestruct($destination, $quantity, $history)
     {
-        $proxy = $this->mockProxy([$destination, $quantity, $history], [
-            'processDownload' => $this->returnCallback(function ($source, $destination) {
-                return touch($destination);
-            }),
-            'photos' => $this->returnCallback(function () use ($quantity) {
-                $photos = [];
-                for ($i = 1; $i <= $quantity; ++$i) {
-                    $photos[] = new Photo([
-                        'id' => 'picture'.$i,
-                        'links' => ['download' => 'http://url/to/picture'.$i],
-                    ]);
-                }
-                return $photos;
-            }),
-        ]);
+        $proxy = $this->mockProxy([$destination, $quantity, $history]);
 
         $photos = $proxy->photos();
         foreach ($photos as $photo) {

@@ -60,7 +60,7 @@ class Unsplash
         $source      = $this->photoSource($photo);
         $destination = $this->photoDestination($photo);
 
-        $ret = $this->processDownload($source, $destination);
+        $ret = $this->isDownloadSuccessful($source, $destination);
         if ($ret === false) {
             return self::DOWNLOAD_FAILED;
         }
@@ -78,7 +78,7 @@ class Unsplash
      * @param  string $destination Path to download the photo to
      * @return bool                True on success, false on error
      */
-    public function processDownload($source, $destination) {
+    public function isDownloadSuccessful($source, $destination) {
         return @copy($source, $destination);
     }
 

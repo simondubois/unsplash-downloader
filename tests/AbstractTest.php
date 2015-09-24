@@ -1,5 +1,6 @@
 <?php namespace Tests;
 
+use Crew\Unsplash\Photo;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit_Framework_TestCase;
@@ -28,15 +29,37 @@ abstract class AbstractTest extends PHPUnit_Framework_TestCase
      * @param  array $methods                          Array of methods to mock
      * @return PHPUnit_Framework_MockObject_MockObject Mocked Unsplash proxy instance
      */
-    protected function mockProxy($arguments, $methods)
+    protected function mockProxy($arguments, $customMethods = [])
     {
+        $defaultMethods = [
+            'isConnectionSuccessful' => function () {
+                return true;
+            },
+            'photos' => function () use ($arguments) {
+                $photos = [];
+                for ($i = 1; $i <= $arguments[1]; ++$i) {
+                    $photos[] = new Photo([
+                        'id' => 'picture'.$i,
+                        'links' => ['download' => 'http://url/to/picture'.$i],
+                    ]);
+                }
+                return $photos;
+            },
+            'isDownloadSuccessful' => function ($source, $destination) {
+                return touch($destination);
+            },
+        ];
+
+        $methods = $customMethods + $defaultMethods;
+
         $proxy = $this->getMockBuilder('Simondubois\UnsplashDownloader\Proxy\Unsplash')
             ->setMethods(array_keys($methods))
             ->setConstructorArgs($arguments)
             ->getMock();
 
-        foreach ($methods as $name => $will) {
-            $proxy->method($name)->will($will);
+        foreach ($methods as $name => $callback) {
+            $proxy->method($name)
+                ->will($this->returnCallback($callback));
         }
 
         return $proxy;
