@@ -121,23 +121,20 @@ class ValidUnsplashTest extends AbstractTest
      */
     public function testDestruct($destination, $quantity, $history)
     {
-        $proxy = $this->mockProxy([$destination, $quantity, $history]);
-
-        $photos = $proxy->photos();
-        foreach ($photos as $photo) {
-            $proxy->download($photo);
-        }
-
-        $proxy->__destruct();
-
         if (is_null($history)) {
             return;
         }
 
+        $proxy = $this->mockProxy([$destination, $quantity, $history]);
+
+        $photos = $proxy->photos();
         $historyList = [];
         foreach ($photos as $photo) {
+            $proxy->download($photo);
             $historyList[] = $photo->id;
         }
+
+        $proxy->__destruct();
 
         $this->assertFileExists($history);
         $this->assertEquals(implode(PHP_EOL, $historyList), file_get_contents($history));

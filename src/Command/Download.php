@@ -28,10 +28,14 @@ class Download extends Command
 
     protected function configure()
     {
-        $this
-            ->setName('download')
+        $this->setName('download')
             ->setDescription('Download unsplash photos')
-            ->addOption(
+            ->configureOptions();
+    }
+
+    protected function configureOptions()
+    {
+        $this->addOption(
                 'destination',
                 null,
                 InputOption::VALUE_REQUIRED,
@@ -53,8 +57,7 @@ class Download extends Command
                     .'When photos are downloaded, their IDs will be stored into the file. '
                     .'Then any further download is going to ignore photos that have their ID in the history. '
                     .'Usefull to delete unwanted pictures and prevent the programm to download them again.'
-            )
-        ;
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -144,16 +147,10 @@ class Download extends Command
      * @param  string $parameter Parameter value
      * @return string            Validated and formatted destination value
      */
-    private function destination($parameter)
+    private function destination($destination)
     {
-        if (strstr($parameter, '://') === false) {
-            $destination = realpath($parameter);
-        } else {
-            $destination = $parameter;
-        }
-
         if ($destination === false) {
-            throw new InvalidArgumentException('The given destination path ('.$parameter.') does not exists.');
+            throw new InvalidArgumentException('The given destination path ('.$destination.') does not exists.');
         }
 
         if (is_dir($destination) === false) {

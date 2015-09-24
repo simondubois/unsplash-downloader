@@ -26,12 +26,29 @@ abstract class AbstractTest extends PHPUnit_Framework_TestCase
     /**
      * Mock the Unsplash proxy
      * @param  array $arguments                        Array of argument for class constructor
-     * @param  array $methods                          Array of methods to mock
+     * @param  array $customMethods                    Array of methods to mock
      * @return PHPUnit_Framework_MockObject_MockObject Mocked Unsplash proxy instance
      */
     protected function mockProxy($arguments, $customMethods = [])
     {
-        $defaultMethods = [
+        $methods = $customMethods + $this->defaultMockProxyMethods($arguments);
+
+        $proxy = $this->getMockBuilder('Simondubois\UnsplashDownloader\Proxy\Unsplash')
+            ->setMethods(array_keys($methods))
+            ->setConstructorArgs($arguments)
+            ->getMock();
+
+        foreach ($methods as $name => $callback) {
+            $proxy->method($name)
+                ->will($this->returnCallback($callback));
+        }
+
+        return $proxy;
+    }
+
+    protected function defaultMockProxyMethods($arguments)
+    {
+        return [
             'isConnectionSuccessful' => function () {
                 return true;
             },
@@ -49,19 +66,5 @@ abstract class AbstractTest extends PHPUnit_Framework_TestCase
                 return touch($destination);
             },
         ];
-
-        $methods = $customMethods + $defaultMethods;
-
-        $proxy = $this->getMockBuilder('Simondubois\UnsplashDownloader\Proxy\Unsplash')
-            ->setMethods(array_keys($methods))
-            ->setConstructorArgs($arguments)
-            ->getMock();
-
-        foreach ($methods as $name => $callback) {
-            $proxy->method($name)
-                ->will($this->returnCallback($callback));
-        }
-
-        return $proxy;
     }
 }
