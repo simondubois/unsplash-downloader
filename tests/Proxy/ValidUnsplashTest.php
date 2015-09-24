@@ -127,8 +127,8 @@ class ValidUnsplashTest extends AbstractTest
 
         $proxy = $this->mockProxy([$destination, $quantity, $history]);
 
-        $photos = $proxy->photos();
         $historyList = [];
+        $photos      = $proxy->photos();
         foreach ($photos as $photo) {
             $proxy->download($photo);
             $historyList[] = $photo->id;

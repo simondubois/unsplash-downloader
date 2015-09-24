@@ -49,10 +49,10 @@ abstract class AbstractTest extends PHPUnit_Framework_TestCase
     protected function defaultMockProxyMethods($arguments)
     {
         return [
-            'isConnectionSuccessful' => function () {
+            'isConnectionSuccessful' => function() {
                 return true;
             },
-            'photos' => function () use ($arguments) {
+            'photos' => function() use ($arguments) {
                 $photos = [];
                 for ($i = 1; $i <= $arguments[1]; ++$i) {
                     $photos[] = new Photo([
@@ -62,7 +62,7 @@ abstract class AbstractTest extends PHPUnit_Framework_TestCase
                 }
                 return $photos;
             },
-            'isDownloadSuccessful' => function ($source, $destination) {
+            'isDownloadSuccessful' => function($source, $destination) {
                 return touch($destination);
             },
         ];

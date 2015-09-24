@@ -13,6 +13,12 @@ class Download extends Command
 
     private $output;
 
+    /**
+     * Output text only if run with verbose attribute
+     * @param  string  $text    Text to output
+     * @param  boolean $newLine Shall the method append a new line character to the text
+     * @return void             No return
+     */
     protected function verboseOutput($text, $newLine = true) {
         if ($this->output->getVerbosity() < OutputInterface::VERBOSITY_VERBOSE) {
             return;
@@ -28,36 +34,36 @@ class Download extends Command
 
     protected function configure()
     {
-        $this->setName('download')
-            ->setDescription('Download unsplash photos')
-            ->configureOptions();
+        $this->setName('download');
+        $this->setDescription('Download unsplash photos');
+        $this->configureOptions();
     }
 
-    protected function configureOptions()
+    private function configureOptions()
     {
         $this->addOption(
-                'destination',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'If defined, download photos into the specified directory',
-                ''
-            )
-            ->addOption(
-                'quantity',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'If defined, number of photos to downaload',
-                '10'
-            )
-            ->addOption(
-                'history',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'If defined, filename will be used to record download history. '
-                    .'When photos are downloaded, their IDs will be stored into the file. '
-                    .'Then any further download is going to ignore photos that have their ID in the history. '
-                    .'Usefull to delete unwanted pictures and prevent the programm to download them again.'
-            );
+            'destination',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'If defined, download photos into the specified directory',
+            ''
+        );
+        $this->addOption(
+            'quantity',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'If defined, number of photos to downaload',
+            '10'
+        );
+        $this->addOption(
+            'history',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'If defined, filename will be used to record download history. '
+                .'When photos are downloaded, their IDs will be stored into the file. '
+                .'Then any further download is going to ignore photos that have their ID in the history. '
+                .'Usefull to delete unwanted pictures and prevent the programm to download them again.'
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -71,6 +77,14 @@ class Download extends Command
         $this->downloadAllPhotos($proxy);
     }
 
+    /**
+     * Check & validate the parameters
+     * @param  InputInterface $input    Command input
+     * @param  string &$destination     Validated destination parameter
+     * @param  string &$quantity        Validated quantity parameter
+     * @param  string|null &$history    Validated history parameter
+     * @return void                     No return
+     */
     protected function parameters($input, &$destination, &$quantity, &$history)
     {
         $destination = $this->destination($input->getOption('destination'));
@@ -107,6 +121,11 @@ class Download extends Command
         return $proxy;
     }
 
+    /**
+     * Download all photos
+     * @param  Unsplash $proxy Unsplash proxy
+     * @return void            No return
+     */
     protected function downloadAllPhotos($proxy)
     {
         $this->verboseOutput('Get photo list from unsplash... ', false);
@@ -144,8 +163,8 @@ class Download extends Command
 
     /**
      * Check validity of the destination parameter
-     * @param  string $parameter Parameter value
-     * @return string            Validated and formatted destination value
+     * @param  string $destination Parameter value
+     * @return string              Validated and formatted destination value
      */
     private function destination($destination)
     {
