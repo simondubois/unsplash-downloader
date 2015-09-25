@@ -56,8 +56,8 @@ abstract class AbstractTest extends PHPUnit_Framework_TestCase
                 $photos = [];
                 for ($i = 1; $i <= $arguments[1]; ++$i) {
                     $photos[] = new Photo([
-                        'id' => 'picture'.$i,
-                        'links' => ['download' => 'http://url/to/picture'.$i],
+                        'id' => 'photo'.$i,
+                        'links' => ['download' => 'http://url/to/photo'.$i],
                     ]);
                 }
                 return $photos;

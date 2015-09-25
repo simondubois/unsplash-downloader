@@ -15,7 +15,7 @@ class ValidDownloadTest extends AbstractDownloadTest
         }
 
         $commandTester = $this->commandTester();
-        $parameters    = $this->parameters($destination, $quantity, $history);
+        $parameters    = $this->parameters($destination, $quantity, $history, true);
 
         $commandTester->execute($parameters);
         $this->assertEquals(0, $commandTester->getStatusCode());

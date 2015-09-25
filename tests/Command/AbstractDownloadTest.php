@@ -19,7 +19,7 @@ abstract class AbstractDownloadTest extends AbstractTest
         return new CommandTester($command);
     }
 
-    public function parameters($destination, $quantity, $history)
+    public function parameters($destination, $quantity, $history, $verbose = false)
     {
         $parameters = [];
 
@@ -35,6 +35,9 @@ abstract class AbstractDownloadTest extends AbstractTest
             $parameters['--history'] = $history;
         }
 
+        if ($verbose === true) {
+            $parameters['--verbose'] = true;
+        }
         return $parameters;
     }
 }

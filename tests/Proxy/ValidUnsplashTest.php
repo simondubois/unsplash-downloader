@@ -27,6 +27,10 @@ class ValidUnsplashTest extends AbstractTest
      */
     public function testConstruct($destination, $quantity, $history)
     {
+        if (strstr($history, 'existing') !== false) {
+            touch($history);
+        }
+
         $proxy = new Unsplash($destination, $quantity, $history);
 
         $this->assertInstanceOf('Simondubois\UnsplashDownloader\Proxy\Unsplash', $proxy);
@@ -95,24 +99,24 @@ class ValidUnsplashTest extends AbstractTest
      */
     public function testDownload($destination, $quantity, $history)
     {
-        $proxy = $this->mockProxy([$destination, $quantity, $history]);
+        if (strstr($history, 'existing') !== true) {
+            touch($history);
+        }
 
-        $destination = new vfsStreamDirectory(substr($destination, 6));
-        $photos      = $proxy->photos();
+        $proxy  = $this->mockProxy([$destination, $quantity, $history]);
+        $photos = $proxy->photos();
 
         foreach ($photos as $photo) {
             $download = $proxy->download($photo);
 
             $this->assertEquals(Unsplash::DOWNLOAD_SUCCESS, $download);
             $this->assertFileExists($proxy->photoDestination($photo));
-
-            $destination->addChild(new vfsStreamFile($proxy->photoDestination($photo)));
         }
 
-        if (strstr($history, 'existing') === true) {
-            $this->assertCount($quantity + 1, $destination->getChildren());
+        if (is_string($history)) {
+            $this->assertCount($quantity + 3, scandir($destination));
         } else {
-            $this->assertCount($quantity, $destination->getChildren());
+            $this->assertCount($quantity + 2, scandir($destination));
         }
     }
 
@@ -123,6 +127,10 @@ class ValidUnsplashTest extends AbstractTest
     {
         if (is_null($history)) {
             return;
+        }
+
+        if (strstr($history, 'existing') !== false) {
+            touch($history);
         }
 
         $proxy = $this->mockProxy([$destination, $quantity, $history]);

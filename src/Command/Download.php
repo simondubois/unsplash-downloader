@@ -10,8 +10,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Download extends Command
 {
+    const ERROR_CONNECTION = 1;
+    const ERROR_DESTINATION_NOTDIR = 2;
+    const ERROR_DESTINATION_UNWRITABLE = 3;
+    const ERROR_QUANTITY_NOTNUMERIC = 4;
+    const ERROR_QUANTITY_NOTPOSITIVE = 5;
+    const ERROR_QUANTITY_TOOHIGH = 6;
+    const ERROR_HISTORY_NOTFILE = 7;
+    const ERROR_HISTORY_NOTRW = 8;
 
-    private $output;
+    public $output;
 
     /**
      * Output text only if run with verbose attribute
@@ -71,9 +79,8 @@ class Download extends Command
         $this->output = $output;
 
         $this->parameters($input, $destination, $quantity, $history);
-
-        $proxy = $this->connect($destination, $quantity, $history);
-
+        $proxy = new Unsplash($destination, $quantity, $history);
+        $this->connect($proxy);
         $this->downloadAllPhotos($proxy);
     }
 
@@ -101,10 +108,8 @@ class Download extends Command
         }
     }
 
-    protected function connect($destination, $quantity, $history)
+    public function connect($proxy)
     {
-        $proxy = new Unsplash($destination, $quantity, $history);
-
         $this->verboseOutput('Connect to unsplash... ', false);
         $connection = $proxy->isConnectionSuccessful();
 
@@ -115,7 +120,10 @@ class Download extends Command
         }
 
         if ($connection === false) {
-            throw new Exception('Can not connect to unsplash (check your Internet connection');
+            throw new Exception(
+                'Can not connect to unsplash (check your Internet connection',
+                self::ERROR_CONNECTION
+            );
         }
 
         return $proxy;
@@ -126,7 +134,7 @@ class Download extends Command
      * @param  Unsplash $proxy Unsplash proxy
      * @return void            No return
      */
-    protected function downloadAllPhotos($proxy)
+    public function downloadAllPhotos($proxy)
     {
         $this->verboseOutput('Get photo list from unsplash... ', false);
 
@@ -148,7 +156,7 @@ class Download extends Command
         $status = $proxy->download($photo);
         if ($status === Unsplash::DOWNLOAD_SUCCESS) {
             $this->verboseOutput('<info>success</info>.');
-        } elseif ($status === Unsplash::DOWNLOAD_HISTORY) {
+        } elseif ($status === Unsplash::DOWNLOAD_SKIPPED) {
             $this->verboseOutput('<comment>ignored (in history)</comment>.');
         } elseif ($status === Unsplash::DOWNLOAD_FAILED) {
             $this->verboseOutput('<error>failed</error>.');
@@ -166,18 +174,20 @@ class Download extends Command
      * @param  string $destination Parameter value
      * @return string              Validated and formatted destination value
      */
-    private function destination($destination)
+    public function destination($destination)
     {
-        if ($destination === false) {
-            throw new InvalidArgumentException('The given destination path ('.$destination.') does not exists.');
-        }
-
         if (is_dir($destination) === false) {
-            throw new InvalidArgumentException('The given destination path ('.$destination.') is not a directory.');
+            throw new InvalidArgumentException(
+                'The given destination path ('.$destination.') is not a directory.',
+                self::ERROR_DESTINATION_NOTDIR
+            );
         }
 
         if (is_writable($destination) === false) {
-            throw new InvalidArgumentException('The given destination path ('.$destination.') is not writable.');
+            throw new InvalidArgumentException(
+                'The given destination path ('.$destination.') is not writable.',
+                self::ERROR_DESTINATION_UNWRITABLE
+            );
         }
 
         return $destination;
@@ -189,21 +199,28 @@ class Download extends Command
     // Handle parameter "quantity"
     //
 
-    private function quantity($parameter)
+    public function quantity($parameter)
     {
         if (is_numeric($parameter) === false) {
-            throw new InvalidArgumentException('The given quantity ('.$parameter.') is not numeric.');
+            throw new InvalidArgumentException(
+                'The given quantity ('.$parameter.') is not numeric.',
+                self::ERROR_QUANTITY_NOTNUMERIC
+            );
         }
 
         $quantity = intval($parameter);
 
         if ($quantity < 0) {
-            throw new InvalidArgumentException('The given quantity ('.$parameter.') is not positive.');
+            throw new InvalidArgumentException(
+                'The given quantity ('.$parameter.') is not positive.',
+                self::ERROR_QUANTITY_NOTPOSITIVE
+            );
         }
 
         if ($quantity >= 100) {
             throw new InvalidArgumentException(
-                'The given quantity ('.$parameter.') is too high (should be lower than 100).'
+                'The given quantity ('.$parameter.') is too high (should be lower than 100).',
+                self::ERROR_QUANTITY_TOOHIGH
             );
         }
 
@@ -221,21 +238,25 @@ class Download extends Command
      * @param  string $history Parameter value
      * @return null|string     Validated and formatted history value
      */
-    private function history($history)
+    public function history($history)
     {
         if (is_null($history)) {
             return null;
         }
 
         if (is_dir($history) === true) {
-            throw new InvalidArgumentException('The given history path ('.$history.') is not a file.');
+            throw new InvalidArgumentException(
+                'The given history path ('.$history.') is not a file.',
+                self::ERROR_HISTORY_NOTFILE
+            );
         }
 
         $handle = @fopen($history, 'a+');
 
         if ($handle === false) {
             throw new InvalidArgumentException(
-                'The given history path ('.$history.') can not be opened for read & write.'
+                'The given history path ('.$history.') can not be opened for read & write.',
+                self::ERROR_HISTORY_NOTRW
             );
         }
 

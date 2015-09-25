@@ -8,7 +8,7 @@ class Unsplash
 {
 
     const DOWNLOAD_SUCCESS = 0;
-    const DOWNLOAD_HISTORY = 1;
+    const DOWNLOAD_SKIPPED = 1;
     const DOWNLOAD_FAILED  = 2;
 
     private $destination;
@@ -54,7 +54,7 @@ class Unsplash
 
     public function download(Photo $photo) {
         if (in_array($photo->id, $this->historyList)) {
-            return self::DOWNLOAD_HISTORY;
+            return self::DOWNLOAD_SKIPPED;
         }
 
         $source      = $this->photoSource($photo);
