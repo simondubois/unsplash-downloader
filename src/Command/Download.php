@@ -27,7 +27,7 @@ class Download extends Command
      * @param  boolean $newLine Shall the method append a new line character to the text
      * @return void             No return
      */
-    protected function verboseOutput($text, $newLine = true) {
+    public function verboseOutput($text, $newLine = true) {
         if ($this->output->getVerbosity() < OutputInterface::VERBOSITY_VERBOSE) {
             return;
         }

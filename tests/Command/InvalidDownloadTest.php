@@ -3,7 +3,8 @@
 use org\bovigo\vfs\vfsStreamWrapper;
 use Simondubois\UnsplashDownloader\Command\Download;
 use Simondubois\UnsplashDownloader\Proxy\Unsplash;
-use Symfony\Component\Console\Output\NullOutput;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class InvalidDownloadTest extends AbstractDownloadTest
 {
@@ -13,7 +14,7 @@ class InvalidDownloadTest extends AbstractDownloadTest
      */
     public function testFailedConnexion() {
         $command = new Download();
-        $command->output = new NullOutput();
+        $command->output = new BufferedOutput();
 
         $root  = vfsStreamWrapper::getRoot();
         $proxy = $this->mockProxy([$root->url(), 1, null], [
@@ -105,7 +106,7 @@ class InvalidDownloadTest extends AbstractDownloadTest
 
     public function testSkippedDownload() {
         $command = new Download();
-        $command->output = new NullOutput();
+        $command->output = new BufferedOutput(OutputInterface::VERBOSITY_VERBOSE);
 
         $root  = vfsStreamWrapper::getRoot();
         $proxy = $this->mockProxy([$root->url(), 1, null], [
@@ -113,7 +114,23 @@ class InvalidDownloadTest extends AbstractDownloadTest
                 return Unsplash::DOWNLOAD_SKIPPED;
             },
         ]);
-// ignored (in history)
+
         $command->downloadAllPhotos($proxy);
+        $this->assertContains('ignored (in history)', $command->output->fetch());
+    }
+
+    public function testFailedDownload() {
+        $command = new Download();
+        $command->output = new BufferedOutput(OutputInterface::VERBOSITY_VERBOSE);
+
+        $root  = vfsStreamWrapper::getRoot();
+        $proxy = $this->mockProxy([$root->url(), 1, null], [
+            'download' => function() {
+                return Unsplash::DOWNLOAD_FAILED;
+            },
+        ]);
+
+        $command->downloadAllPhotos($proxy);
+        $this->assertContains('failed', $command->output->fetch());
     }
 }

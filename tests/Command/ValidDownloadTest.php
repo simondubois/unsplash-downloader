@@ -2,6 +2,9 @@
 
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamWrapper;
+use Symfony\Component\Console\Output\OutputInterface;
+use Simondubois\UnsplashDownloader\Command\Download;
+use Symfony\Component\Console\Output\BufferedOutput;
 
 class ValidDownloadTest extends AbstractDownloadTest
 {
@@ -29,5 +32,24 @@ class ValidDownloadTest extends AbstractDownloadTest
         if (is_string($history)) {
             $this->assertFileExists($history);
         }
+    }
+
+    public function testVerboseOutput() {
+        $command = new Download();
+
+        $output = new BufferedOutput();
+        $command->output = $output;
+
+        $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
+        $command->verboseOutput('test');
+        $this->assertEquals("test\n", $output->fetch());
+
+        $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
+        $command->verboseOutput('test', false);
+        $this->assertEquals('test', $output->fetch());
+
+        $output->setVerbosity(OutputInterface::VERBOSITY_NORMAL);
+        $command->verboseOutput('test', false);
+        $this->assertEquals('', $output->fetch());
     }
 }
