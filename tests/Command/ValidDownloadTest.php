@@ -12,9 +12,8 @@ class ValidDownloadTest extends AbstractDownloadTest
      * @dataProvider validParameterProvider
      */
     public function testValidParameters($destination, $quantity, $history) {
-        if (strstr($history, 'existing') === true) {
-            // vfsStream::create([$history => '']);
-            vfsStreamWrapper::createFile($history);
+        if (strstr($history, 'existing') !== false) {
+            touch($history);
         }
 
         $commandTester = $this->commandTester();
@@ -24,9 +23,9 @@ class ValidDownloadTest extends AbstractDownloadTest
         $this->assertEquals(0, $commandTester->getStatusCode());
 
         if (is_string($history)) {
-            $this->assertCount($quantity + 1, vfsStreamWrapper::getRoot()->getChildren());
+            $this->assertCount($quantity + 3, scandir($destination));
         } else {
-            $this->assertCount($quantity, vfsStreamWrapper::getRoot()->getChildren());
+            $this->assertCount($quantity + 2, scandir($destination));
         }
 
         if (is_string($history)) {
@@ -37,7 +36,7 @@ class ValidDownloadTest extends AbstractDownloadTest
     public function testVerboseOutput() {
         $command = new Download();
 
-        $output = new BufferedOutput();
+        $output          = new BufferedOutput();
         $command->output = $output;
 
         $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);

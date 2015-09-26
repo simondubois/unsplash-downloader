@@ -10,7 +10,7 @@ class InvalidUnsplashTest extends AbstractTest
     {
         $root = vfsStreamWrapper::getRoot();
 
-        $proxy  = $this->mockProxy([$root->url(), 1, null], [
+        $proxy = $this->mockProxy([$root->url(), 1, null], [
             'isDownloadSuccessful' => function() {
                 return false;
             },

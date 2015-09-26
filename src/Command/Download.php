@@ -10,14 +10,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Download extends Command
 {
-    const ERROR_CONNECTION = 1;
-    const ERROR_DESTINATION_NOTDIR = 2;
+    const ERROR_CONNECTION             = 1;
+    const ERROR_DESTINATION_NOTDIR     = 2;
     const ERROR_DESTINATION_UNWRITABLE = 3;
-    const ERROR_QUANTITY_NOTNUMERIC = 4;
-    const ERROR_QUANTITY_NOTPOSITIVE = 5;
-    const ERROR_QUANTITY_TOOHIGH = 6;
-    const ERROR_HISTORY_NOTFILE = 7;
-    const ERROR_HISTORY_NOTRW = 8;
+    const ERROR_QUANTITY_NOTNUMERIC    = 4;
+    const ERROR_QUANTITY_NOTPOSITIVE   = 5;
+    const ERROR_QUANTITY_TOOHIGH       = 6;
+    const ERROR_HISTORY_NOTFILE        = 7;
+    const ERROR_HISTORY_NOTRW          = 8;
 
     public $output;
 
@@ -125,8 +125,6 @@ class Download extends Command
                 self::ERROR_CONNECTION
             );
         }
-
-        return $proxy;
     }
 
     /**

@@ -13,7 +13,7 @@ class InvalidDownloadTest extends AbstractDownloadTest
      * @expectedExceptionCode Simondubois\UnsplashDownloader\Command\Download::ERROR_CONNECTION
      */
     public function testFailedConnexion() {
-        $command = new Download();
+        $command         = new Download();
         $command->output = new BufferedOutput();
 
         $root  = vfsStreamWrapper::getRoot();
@@ -105,7 +105,7 @@ class InvalidDownloadTest extends AbstractDownloadTest
     }
 
     public function testSkippedDownload() {
-        $command = new Download();
+        $command         = new Download();
         $command->output = new BufferedOutput(OutputInterface::VERBOSITY_VERBOSE);
 
         $root  = vfsStreamWrapper::getRoot();
@@ -120,7 +120,7 @@ class InvalidDownloadTest extends AbstractDownloadTest
     }
 
     public function testFailedDownload() {
-        $command = new Download();
+        $command         = new Download();
         $command->output = new BufferedOutput(OutputInterface::VERBOSITY_VERBOSE);
 
         $root  = vfsStreamWrapper::getRoot();

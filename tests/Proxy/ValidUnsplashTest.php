@@ -5,20 +5,6 @@ use org\bovigo\vfs\vfsStreamFile;
 use Simondubois\UnsplashDownloader\Proxy\Unsplash;
 use Tests\AbstractTest;
 
-// $permissions = $destination->getPermissions();
-// $destination->chmod(0);
-// var_dump($destination->isWritable());
-// $download = $proxy->download($photo);
-// $destination->chmod($permissions);
-// $this->assertEquals(Unsplash::DOWNLOAD_FAILED, $download);
-
-// $download = $proxy->download($photo);
-// if (is_string($history)) {
-//     $this->assertEquals(Unsplash::DOWNLOAD_HISTORY, $download);
-// } else {
-//     $this->assertEquals(Unsplash::DOWNLOAD_SUCCESS, $download);
-// }
-
 class ValidUnsplashTest extends AbstractTest
 {
 
