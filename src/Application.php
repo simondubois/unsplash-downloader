@@ -15,7 +15,7 @@ class Application extends SymfonyApplication
     public function getCommandName(InputInterface $input)
     {
         // This should return the name of your command.
-        return 'download';
+        return 'unsplash-downloader';
     }
 
     /**

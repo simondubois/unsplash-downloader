@@ -13,8 +13,8 @@ abstract class AbstractDownloadTest extends AbstractTest
         $application = new Application();
         $application->add(new Download());
 
-        $this->assertEquals('download', $application->getCommandName(new ArgvInput(null)));
-        $command = $application->find('download');
+        $this->assertEquals('unsplash-downloader', $application->getCommandName(new ArgvInput(null)));
+        $command = $application->find('unsplash-downloader');
 
         return new CommandTester($command);
     }

@@ -42,7 +42,7 @@ class Download extends Command
 
     protected function configure()
     {
-        $this->setName('download');
+        $this->setName('unsplash-downloader');
         $this->setDescription('Download unsplash photos');
         $this->configureOptions();
     }
@@ -54,7 +54,7 @@ class Download extends Command
             null,
             InputOption::VALUE_REQUIRED,
             'If defined, download photos into the specified directory',
-            ''
+            getcwd()
         );
         $this->addOption(
             'quantity',
@@ -67,10 +67,10 @@ class Download extends Command
             'history',
             null,
             InputOption::VALUE_REQUIRED,
-            'If defined, filename will be used to record download history. '
-                .'When photos are downloaded, their IDs will be stored into the file. '
-                .'Then any further download is going to ignore photos that have their ID in the history. '
-                .'Usefull to delete unwanted pictures and prevent the programm to download them again.'
+            "If defined, filename will be used to record download history.
+                When photos are downloaded, their IDs will be stored into the file.
+                Then any further download is going to ignore photos that have their ID in the history.
+                Usefull to delete unwanted pictures and prevent the programm to download them again."
         );
     }
 
@@ -149,15 +149,15 @@ class Download extends Command
         $source      = $proxy->photoSource($photo);
         $destination = $proxy->photoDestination($photo);
 
-        $this->verboseOutput('Download photo from '.$source.' to '.$destination.'... ', false);
+        $this->output->write('Download photo from '.$source.' to '.$destination.'... ', false);
 
         $status = $proxy->download($photo);
         if ($status === Unsplash::DOWNLOAD_SUCCESS) {
-            $this->verboseOutput('<info>success</info>.');
+            $this->output->writeln('<info>success</info>.');
         } elseif ($status === Unsplash::DOWNLOAD_SKIPPED) {
-            $this->verboseOutput('<comment>ignored (in history)</comment>.');
+            $this->output->writeln('<comment>ignored (in history)</comment>.');
         } elseif ($status === Unsplash::DOWNLOAD_FAILED) {
-            $this->verboseOutput('<error>failed</error>.');
+            $this->output->writeln('<error>failed</error>.');
         }
     }
 
