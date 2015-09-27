@@ -18,7 +18,7 @@ if (is_file($buildRoot.'/'.$pharFile)) {
 exec('composer install --no-dev');
 
 // Build phar file
-$phar = new Phar($buildRoot.'/'.$pharFile, 0, $pharFile);
+$phar              = new Phar($buildRoot.'/'.$pharFile, 0, $pharFile);
 $directoryIterator = new RecursiveDirectoryIterator($projectRoot.'/cli', FilesystemIterator::SKIP_DOTS);
 $recursiveIterator = new RecursiveIteratorIterator($directoryIterator);
 $phar->buildFromIterator($recursiveIterator, $projectRoot);
@@ -36,9 +36,6 @@ require 'phar://$pharFile/cli/index.php';
 __HALT_COMPILER();
 EOF
 );
-
-// // Compress phar file
-// $compressed = $phar->convertToExecutable(Phar::TAR, Phar::GZ, '.phar.tgz');
 
 // Make file executable
 chmod($buildRoot.'/'.$pharFile, 0777);

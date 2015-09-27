@@ -67,10 +67,10 @@ class Download extends Command
             'history',
             null,
             InputOption::VALUE_REQUIRED,
-            "If defined, filename will be used to record download history.
+            'If defined, filename will be used to record download history.
                 When photos are downloaded, their IDs will be stored into the file.
                 Then any further download is going to ignore photos that have their ID in the history.
-                Usefull to delete unwanted pictures and prevent the programm to download them again."
+                Usefull to delete unwanted pictures and prevent the programm to download them again.'
         );
     }
 
