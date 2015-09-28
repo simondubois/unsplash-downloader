@@ -23,21 +23,47 @@ abstract class AbstractDownloadTest extends AbstractTest
     {
         $parameters = [];
 
+        $parameters = $this->parametersDestination($parameters, $destination);
+        $parameters = $this->parametersQuantity($parameters, $quantity);
+        $parameters = $this->parametersHistory($parameters, $history);
+        $parameters = $this->parametersVerbose($parameters, $verbose);
+
+        return $parameters;
+    }
+
+    private function parametersDestination($parameters, $destination)
+    {
         if (is_string($destination)) {
             $parameters['--destination'] = $destination;
         }
 
+        return $parameters;
+    }
+
+    private function parametersQuantity($parameters, $quantity)
+    {
         if (is_numeric($quantity)) {
             $parameters['--quantity'] = $quantity;
         }
 
+        return $parameters;
+    }
+
+    private function parametersHistory($parameters, $history)
+    {
         if (is_string($history)) {
             $parameters['--history'] = $history;
         }
 
+        return $parameters;
+    }
+
+    private function parametersVerbose($parameters, $verbose)
+    {
         if ($verbose === true) {
             $parameters['--verbose'] = true;
         }
+
         return $parameters;
     }
 }

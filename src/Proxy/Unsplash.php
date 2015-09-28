@@ -4,18 +4,48 @@ use Crew\Unsplash\Connection;
 use Crew\Unsplash\HttpClient;
 use Crew\Unsplash\Photo;
 
+/**
+ * Proxy dealing with the Unsplah API :
+ * - connect to the server.
+ * - list photos
+ * - download photos
+ */
 class Unsplash
 {
-
     const DOWNLOAD_SUCCESS = 0;
     const DOWNLOAD_SKIPPED = 1;
     const DOWNLOAD_FAILED  = 2;
 
+    /**
+     * Path where to download photos
+     * @var string
+     */
     private $destination;
+
+    /**
+     * Number of photos to download
+     * @var int
+     */
     private $quantity;
+
+    /**
+     * Path of the file to use for history
+     * @var string
+     */
     private $historyPath;
+
+    /**
+     * IDs of already download photos
+     * @var array
+     */
     private $historyList = [];
 
+    /**
+     * Set proxy settings
+     * @param string $destination  Path where to download photos
+     * @param int $quantity        Number of photos to download
+     * @param string|null $history Path of the file to use for history (or null if none)
+     */
     public function __construct($destination, $quantity, $history)
     {
         $this->destination = $destination;
@@ -30,6 +60,10 @@ class Unsplash
         }
     }
 
+    /**
+     * Save history to history file if provided
+     * @return
+     */
     public function __destruct()
     {
         if (is_string($this->historyPath)) {
@@ -37,6 +71,10 @@ class Unsplash
         }
     }
 
+    /**
+     * Connect to API
+     * @return boolean Is the connection successful
+     */
     public function isConnectionSuccessful()
     {
         HttpClient::init([
@@ -48,10 +86,19 @@ class Unsplash
         return HttpClient::$connection instanceof Connection;
     }
 
+    /**
+     * Request APi to get photos to downloads
+     * @return array Photos to download
+     */
     public function photos() {
         return Photo::all(1, $this->quantity);
     }
 
+    /**
+     * Download the given photo to the destination
+     * @param  Photo  $photo Photo to download
+     * @return int           Download status
+     */
     public function download(Photo $photo) {
         if (in_array($photo->id, $this->historyList)) {
             return self::DOWNLOAD_SKIPPED;

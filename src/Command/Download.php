@@ -8,6 +8,15 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * A download command handle the whole process to download photos.
+ * The steps are :
+ *  - check option validity (destination, count and history).
+ *  - create a proxy (to deal with Unsplash API).
+ *  - connect proxy to API.
+ *  - get list of photos.
+ *  - download each photo.
+ */
 class Download extends Command
 {
     const ERROR_CONNECTION             = 1;
@@ -19,13 +28,24 @@ class Download extends Command
     const ERROR_HISTORY_NOTFILE        = 7;
     const ERROR_HISTORY_NOTRW          = 8;
 
+    /**
+     * Output instance.
+     * Stored to simplify method calls.
+     * @var OutputInterface
+     */
     public $output;
+
+
+
+    //
+    // Handle command setup
+    //
 
     /**
      * Output text only if run with verbose attribute
      * @param  string  $text    Text to output
      * @param  boolean $newLine Shall the method append a new line character to the text
-     * @return void             No return
+     * @return void
      */
     public function verboseOutput($text, $newLine = true) {
         if ($this->output->getVerbosity() < OutputInterface::VERBOSITY_VERBOSE) {
@@ -40,6 +60,10 @@ class Download extends Command
         $this->output->write($text);
     }
 
+    /**
+     * Configure the Symfony command
+     * @return void
+     */
     protected function configure()
     {
         $this->setName('unsplash-downloader');
@@ -47,33 +71,41 @@ class Download extends Command
         $this->configureOptions();
     }
 
+    /**
+     * Set command options
+     * @return void
+     */
     private function configureOptions()
     {
         $this->addOption(
-            'destination',
-            null,
-            InputOption::VALUE_REQUIRED,
-            'If defined, download photos into the specified directory',
-            getcwd()
+            'destination', null, InputOption::VALUE_REQUIRED, 'Directory where to download photos', getcwd()
         );
         $this->addOption(
-            'quantity',
-            null,
-            InputOption::VALUE_REQUIRED,
-            'If defined, number of photos to downaload',
-            '10'
+            'quantity', null, InputOption::VALUE_REQUIRED, 'Number of photos to download', '10'
         );
         $this->addOption(
             'history',
             null,
             InputOption::VALUE_REQUIRED,
-            'If defined, filename will be used to record download history.
+            'Filename to use as download history.
                 When photos are downloaded, their IDs will be stored into the file.
                 Then any further download is going to ignore photos that have their ID in the history.
-                Usefull to delete unwanted pictures and prevent the programm to download them again.'
+                Usefull to delete unwanted pictures and prevent the CLI to download them again.'
         );
     }
 
+
+
+    //
+    // Handle command operations
+    //
+
+    /**
+     * Process the download based on provided options
+     * @param  InputInterface  $input  Command input
+     * @param  OutputInterface $output Command output
+     * @return void
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->output = $output;
@@ -87,10 +119,10 @@ class Download extends Command
     /**
      * Check & validate the parameters
      * @param  InputInterface $input    Command input
-     * @param  string &$destination     Validated destination parameter
-     * @param  string &$quantity        Validated quantity parameter
-     * @param  string|null &$history    Validated history parameter
-     * @return void                     No return
+     * @param  string $destination      Validated destination parameter
+     * @param  string $quantity         Validated quantity parameter
+     * @param  string|null $history     Validated history parameter
+     * @return void
      */
     protected function parameters($input, &$destination, &$quantity, &$history)
     {
@@ -108,6 +140,11 @@ class Download extends Command
         }
     }
 
+    /**
+     * Connect proxy to API
+     * @param  Unsplash $proxy Unsplash proxy
+     * @return void
+     */
     public function connect($proxy)
     {
         $this->verboseOutput('Connect to unsplash... ', false);
@@ -130,7 +167,7 @@ class Download extends Command
     /**
      * Download all photos
      * @param  Unsplash $proxy Unsplash proxy
-     * @return void            No return
+     * @return void
      */
     public function downloadAllPhotos($proxy)
     {
@@ -144,6 +181,12 @@ class Download extends Command
         }
     }
 
+    /**
+     * Download one photo
+     * @param  Unsplash $proxy Unsplash proxy
+     * @param  Photo $photo    Photo instance
+     * @return void
+     */
     protected function downloadOnePhoto($proxy, $photo)
     {
         $source      = $proxy->photoSource($photo);
@@ -164,7 +207,7 @@ class Download extends Command
 
 
     //
-    // Handle parameter "destination"
+    // Handle parameter validations
     //
 
     /**
@@ -191,13 +234,26 @@ class Download extends Command
         return $destination;
     }
 
-
-
-    //
-    // Handle parameter "quantity"
-    //
-
+    /**
+     * Check validity of the quantity parameter
+     * @param  string $parameter Parameter value
+     * @return int               Validated and formatted quantity value
+     */
     public function quantity($parameter)
+    {
+        $quantity = $this->quantityFormat($parameter);
+
+        $this->quantityValidation($quantity);
+
+        return $quantity;
+    }
+
+    /**
+     * Format the quantity to integer
+     * @param  string $parameter Parameter value
+     * @return int               Formatted quantity value
+     */
+    private function quantityFormat($parameter)
     {
         if (is_numeric($parameter) === false) {
             throw new InvalidArgumentException(
@@ -206,30 +262,30 @@ class Download extends Command
             );
         }
 
-        $quantity = intval($parameter);
+        return intval($parameter);
+    }
 
+    /**
+     * Check the quantity value
+     * @return int quantity Formatted quantity value
+     * @return void
+     */
+    private function quantityValidation($quantity)
+    {
         if ($quantity < 0) {
             throw new InvalidArgumentException(
-                'The given quantity ('.$parameter.') is not positive.',
+                'The given quantity ('.$quantity.') is not positive.',
                 self::ERROR_QUANTITY_NOTPOSITIVE
             );
         }
 
         if ($quantity >= 100) {
             throw new InvalidArgumentException(
-                'The given quantity ('.$parameter.') is too high (should be lower than 100).',
+                'The given quantity ('.$quantity.') is too high (should be lower than 100).',
                 self::ERROR_QUANTITY_TOOHIGH
             );
         }
-
-        return $quantity;
     }
-
-
-
-    //
-    // Handle parameter "history"
-    //
 
     /**
      * Check validity of the history parameter
@@ -242,24 +298,43 @@ class Download extends Command
             return null;
         }
 
+        $this->historyValidationType($history);
+        $this->historyValidationAccess($history);
+
+        return $history;
+    }
+
+    /**
+     * Check if history is not a dir
+     * @param  string $history Parameter value
+     * @return void
+     */
+    private function historyValidationType($history)
+    {
         if (is_dir($history) === true) {
             throw new InvalidArgumentException(
                 'The given history path ('.$history.') is not a file.',
                 self::ERROR_HISTORY_NOTFILE
             );
         }
+    }
 
+    /**
+     * Check if history is accessible
+     * @param  string $history Parameter value
+     * @return void
+     */
+    private function historyValidationAccess($history)
+    {
         $handle = @fopen($history, 'a+');
 
         if ($handle === false) {
             throw new InvalidArgumentException(
-                'The given history path ('.$history.') can not be opened for read & write.',
+                'The given history path ('.$history.') can not be created or opened for read & write.',
                 self::ERROR_HISTORY_NOTRW
             );
         }
 
         fclose($handle);
-
-        return $history;
     }
 }

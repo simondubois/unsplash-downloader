@@ -93,10 +93,7 @@ class ValidUnsplashTest extends AbstractTest
         $photos = $proxy->photos();
 
         foreach ($photos as $photo) {
-            $download = $proxy->download($photo);
-
-            $this->assertEquals(Unsplash::DOWNLOAD_SUCCESS, $download);
-            $this->assertFileExists($proxy->photoDestination($photo));
+            $this->downloadPhoto($proxy, $photo);
         }
 
         if (is_string($history)) {
@@ -104,6 +101,14 @@ class ValidUnsplashTest extends AbstractTest
         } else {
             $this->assertCount($quantity + 2, scandir($destination));
         }
+    }
+
+    public function downloadPhoto($proxy, $photo)
+    {
+        $download = $proxy->download($photo);
+
+        $this->assertEquals(Unsplash::DOWNLOAD_SUCCESS, $download);
+        $this->assertFileExists($proxy->photoDestination($photo));
     }
 
     /**
