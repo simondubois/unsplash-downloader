@@ -25,7 +25,7 @@ class Application extends SymfonyApplication
      * Gets the InputDefinition related to this Application.
      * Overridden so that the application doesn't expect the command
      * name to be the first argument.
-     * @return InputDefinition The InputDefinition instance
+     * @return \Symfony\Component\Console\Input\InputDefinition The InputDefinition instance
     */
     public function getDefinition()
     {
