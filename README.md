@@ -48,7 +48,7 @@ Initial script to define application commands and run it.
 An Application is the container for a collection of commands.
 It is the main entry point of a Console application.
 This class is optimized for a standard CLI environment.
- 
+
 	src/Command/Download.php
 A download command to handle the whole process to download photos.
 The steps are :
