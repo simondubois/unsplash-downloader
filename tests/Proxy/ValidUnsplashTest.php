@@ -93,7 +93,7 @@ class ValidUnsplashTest extends AbstractTest
         $photos = $proxy->photos();
 
         foreach ($photos as $photo) {
-            $this->downloadPhoto($proxy, $photo);
+            $this->downloadPhotoForTestDownload($proxy, $photo);
         }
 
         if (is_string($history)) {
@@ -103,7 +103,7 @@ class ValidUnsplashTest extends AbstractTest
         }
     }
 
-    public function downloadPhoto($proxy, $photo)
+    public function downloadPhotoForTestDownload($proxy, $photo)
     {
         $download = $proxy->download($photo);
 
@@ -124,18 +124,24 @@ class ValidUnsplashTest extends AbstractTest
             touch($history);
         }
 
-        $proxy = $this->mockProxy([$destination, $quantity, $history]);
-
-        $historyList = [];
-        $photos      = $proxy->photos();
-        foreach ($photos as $photo) {
-            $proxy->download($photo);
-            $historyList[] = $photo->id;
-        }
-
+        $proxy       = $this->mockProxy([$destination, $quantity, $history]);
+        $historyList = $this->historyListForTestDestruct($proxy);
         $proxy->__destruct();
 
         $this->assertFileExists($history);
         $this->assertEquals(implode(PHP_EOL, $historyList), file_get_contents($history));
     }
+
+    public function historyListForTestDestruct($proxy) {
+        $historyList = [];
+
+        $photos = $proxy->photos($proxy);
+        foreach ($photos as $photo) {
+            $proxy->download($photo);
+            $historyList[] = $photo->id;
+        }
+
+        return $historyList;
+    }
+
 }

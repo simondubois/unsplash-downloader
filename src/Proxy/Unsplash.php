@@ -88,7 +88,7 @@ class Unsplash
 
     /**
      * Request APi to get photos to downloads
-     * @return array Photos to download
+     * @return \Crew\Unsplash\ArrayObject Photos to download
      */
     public function photos() {
         return Photo::all(1, $this->quantity);

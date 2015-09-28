@@ -19,6 +19,14 @@ abstract class AbstractDownloadTest extends AbstractTest
         return new CommandTester($command);
     }
 
+    /**
+     * Build array of parameters
+     * @param string $destination  Path where to download photos
+     * @param int $quantity        Number of photos to download
+     * @param string|null $history Path of the file to use for history (or null if none)
+     * @param boolean $verbose     Is the output verbose
+     * @return array               Array of parameters
+     */
     public function parameters($destination, $quantity, $history, $verbose = false)
     {
         $parameters = [];
@@ -31,6 +39,12 @@ abstract class AbstractDownloadTest extends AbstractTest
         return $parameters;
     }
 
+    /**
+     * Store destination parameter if provided to parameters array
+     * @param array $parameters   Array of parameters
+     * @param string $destination Path where to download photos
+     * @return array              Array of parameters
+     */
     private function parametersDestination($parameters, $destination)
     {
         if (is_string($destination)) {
@@ -40,6 +54,12 @@ abstract class AbstractDownloadTest extends AbstractTest
         return $parameters;
     }
 
+    /**
+     * Store quantity parameter if provided to parameters array
+     * @param array $parameters  Array of parameters
+     * @param int $quantity      Number of photos to download
+     * @return array             Array of parameters
+     */
     private function parametersQuantity($parameters, $quantity)
     {
         if (is_numeric($quantity)) {
@@ -49,6 +69,12 @@ abstract class AbstractDownloadTest extends AbstractTest
         return $parameters;
     }
 
+    /**
+     * Store history parameter if provided to parameters array
+     * @param array $parameters    Array of parameters
+     * @param string|null $history Path of the file to use for history (or null if none)
+     * @return array               Array of parameters
+     */
     private function parametersHistory($parameters, $history)
     {
         if (is_string($history)) {
@@ -58,6 +84,12 @@ abstract class AbstractDownloadTest extends AbstractTest
         return $parameters;
     }
 
+    /**
+     * Store verbose parameter if provided to parameters array
+     * @param array $parameters Array of parameters
+     * @param boolean $verbose  Is the output verbose
+     * @return array            Array of parameters
+     */
     private function parametersVerbose($parameters, $verbose)
     {
         if ($verbose === true) {
