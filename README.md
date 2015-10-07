@@ -66,8 +66,8 @@ Proxy dealing with the Unsplah API :
 
 ### Run tests
 	vendor/bin/phpunit
-Test coverage can be found under tests/coverage.
+Test coverage can be found under `tests/coverage`.
 
 ### Build PHAR
 	php create-phar.php
-The generated PHAR can be found under build directory.
+The generated PHAR can be found under `build`.
