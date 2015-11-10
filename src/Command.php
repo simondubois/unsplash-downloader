@@ -1,36 +1,39 @@
-<?php namespace Simondubois\UnsplashDownloader\Command;
+<?php namespace Simondubois\UnsplashDownloader;
 
-use Exception;
 use InvalidArgumentException;
-use Simondubois\UnsplashDownloader\Proxy\Unsplash;
-use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * A download command handle the whole process to download photos.
+ * A command to check parameters validity and call a download task.
  * The steps are :
  *  - check option validity (destination, count and history).
- *  - create a proxy (to deal with Unsplash API).
- *  - connect proxy to API.
- *  - get list of photos.
- *  - download each photo.
+ *  - create a task (to deal with Unsplash API).
+ *  - execute the task.
  */
-class Download extends Command
+class Command extends SymfonyCommand
 {
-    const ERROR_CONNECTION             = 1;
-    const ERROR_DESTINATION_NOTDIR     = 2;
-    const ERROR_DESTINATION_UNWRITABLE = 3;
-    const ERROR_QUANTITY_NOTNUMERIC    = 4;
-    const ERROR_QUANTITY_NOTPOSITIVE   = 5;
-    const ERROR_QUANTITY_TOOHIGH       = 6;
-    const ERROR_HISTORY_NOTFILE        = 7;
-    const ERROR_HISTORY_NOTRW          = 8;
+
+    //
+    // Constants & attributes
+    //
+
+    /**
+     * Error codes
+     */
+    const ERROR_DESTINATION_NOTDIR     = 1;
+    const ERROR_DESTINATION_UNWRITABLE = 2;
+    const ERROR_QUANTITY_NOTNUMERIC    = 3;
+    const ERROR_QUANTITY_NOTPOSITIVE   = 4;
+    const ERROR_QUANTITY_TOOHIGH       = 5;
+    const ERROR_HISTORY_NOTFILE        = 6;
+    const ERROR_HISTORY_NOTRW          = 7;
 
     /**
      * Output instance.
-     * Stored to simplify method calls.
+     * Stored to simplify method calls and to be used in callbacks.
      * @var OutputInterface
      */
     public $output;
@@ -38,27 +41,56 @@ class Download extends Command
 
 
     //
-    // Handle command setup
+    // Helpers
     //
 
     /**
      * Output text only if run with verbose attribute
-     * @param  string  $text    Text to output
-     * @param  boolean $newLine Shall the method append a new line character to the text
+     * @param  string  $message Text to output
+     * @param  string|null $context Context of the message
      * @return void
      */
-    public function verboseOutput($text, $newLine = true) {
+    public function verboseOutput($message, $context = null) {
         if ($this->output->getVerbosity() < OutputInterface::VERBOSITY_VERBOSE) {
             return;
         }
 
-        if ($newLine === true) {
-            $this->output->writeln($text);
+        if (is_string($context)) {
+            $pattern = '^(.+)('.PHP_EOL.'?)$';
+            $replacement = sprintf("<%s>$1</%s>$2", $context, $message, $context);
+            $subject = $message;
+
+            $message = preg_replace($pattern, $replacement, $subject);
+        }
+
+        $this->output->write($message);
+    }
+
+
+
+    /**
+     * Output text only if run with verbose attribute
+     * @param  string  $message Text to output
+     * @param  string|null $context Context of the message
+     * @return void
+     */
+    public function output($message, $context = null) {
+        if ($this->output->getVerbosity() < OutputInterface::VERBOSITY_NORMAL) {
             return;
         }
 
-        $this->output->write($text);
+        if (is_string($context)) {
+            $message = sprintf("<%s>%s</%s>", $context, $message, $context);
+        }
+
+        $this->output->write($message);
     }
+
+
+
+    //
+    // Handle command setup
+    //
 
     /**
      * Configure the Symfony command
@@ -110,104 +142,43 @@ class Download extends Command
     {
         $this->output = $output;
 
-        $this->parameters($input, $destination, $quantity, $history);
-        $proxy = new Unsplash($destination, $quantity, $history);
-        $this->connect($proxy);
-        $this->downloadAllPhotos($proxy);
+        $task = new Task();
+
+        $task->setNotificationCallback([$this, 'output']);
+
+        $this->parameters($task, $input);
+        $task->execute();
     }
 
     /**
      * Check & validate the parameters
-     * @param  InputInterface $input    Command input
-     * @param  string $destination      Validated destination parameter
-     * @param  string $quantity         Validated quantity parameter
-     * @param  string|null $history     Validated history parameter
+     * @param  Task $task Download task
+     * @param  InputInterface $input Command input
      * @return void
      */
-    protected function parameters($input, &$destination, &$quantity, &$history)
+    protected function parameters(Task $task, InputInterface $input)
     {
         $destination = $this->destination($input->getOption('destination'));
-        $this->verboseOutput('Download photos to '.$destination.'.');
+        $task->setDestination($destination);
+        $this->verboseOutput('Download photos to '.$destination.'.'.PHP_EOL);
 
         $quantity = $this->quantity($input->getOption('quantity'));
-        $this->verboseOutput('Download the last '.$quantity.' photos.');
+        $task->setQuantity($quantity);
+        $this->verboseOutput('Download the last '.$quantity.' photos.'.PHP_EOL);
 
         $history = $this->history($input->getOption('history'));
+        $task->setHistory($history);
         if (is_string($history)) {
-            $this->verboseOutput('Use '.$history.' as history.');
+            $this->verboseOutput('Use '.$history.' as history.'.PHP_EOL);
         } else {
-            $this->verboseOutput('Do not use history.');
-        }
-    }
-
-    /**
-     * Connect proxy to API
-     * @param  Unsplash $proxy Unsplash proxy
-     * @return void
-     */
-    public function connect($proxy)
-    {
-        $this->verboseOutput('Connect to unsplash... ', false);
-        $connection = $proxy->isConnectionSuccessful();
-
-        if ($connection === false) {
-            $this->verboseOutput('<error>failed</error>.');
-        } else {
-            $this->verboseOutput('<info>success</info>.');
-        }
-
-        if ($connection === false) {
-            throw new Exception(
-                'Can not connect to unsplash (check your Internet connection',
-                self::ERROR_CONNECTION
-            );
-        }
-    }
-
-    /**
-     * Download all photos
-     * @param  Unsplash $proxy Unsplash proxy
-     * @return void
-     */
-    public function downloadAllPhotos($proxy)
-    {
-        $this->verboseOutput('Get photo list from unsplash... ', false);
-
-        $photos = $proxy->photos();
-        $this->verboseOutput('<info>success</info>.');
-
-        foreach ($photos as $photo) {
-            $this->downloadOnePhoto($proxy, $photo);
-        }
-    }
-
-    /**
-     * Download one photo
-     * @param  Unsplash $proxy Unsplash proxy
-     * @param  Photo $photo    Photo instance
-     * @return void
-     */
-    protected function downloadOnePhoto($proxy, $photo)
-    {
-        $source      = $proxy->photoSource($photo);
-        $destination = $proxy->photoDestination($photo);
-
-        $this->output->write('Download photo from '.$source.' to '.$destination.'... ', false);
-
-        $status = $proxy->download($photo);
-        if ($status === Unsplash::DOWNLOAD_SUCCESS) {
-            $this->output->writeln('<info>success</info>.');
-        } elseif ($status === Unsplash::DOWNLOAD_SKIPPED) {
-            $this->output->writeln('<comment>ignored (in history)</comment>.');
-        } elseif ($status === Unsplash::DOWNLOAD_FAILED) {
-            $this->output->writeln('<error>failed</error>.');
+            $this->verboseOutput('Do not use history.'.PHP_EOL);
         }
     }
 
 
 
     //
-    // Handle parameter validations
+    // Destination parameter
     //
 
     /**
@@ -233,6 +204,12 @@ class Download extends Command
 
         return $destination;
     }
+
+
+
+    //
+    // Quantity parameter
+    //
 
     /**
      * Check validity of the quantity parameter
@@ -286,6 +263,12 @@ class Download extends Command
             );
         }
     }
+
+
+
+    //
+    // History parameter
+    //
 
     /**
      * Check validity of the history parameter
