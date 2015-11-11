@@ -25,6 +25,7 @@ class Task
      * Notification types
      */
     const NOTIFY_INFO = 'info';
+    const NOTIFY_COMMENT = 'comment';
     const NOTIFY_ERROR = 'error';
 
     /**
@@ -47,12 +48,6 @@ class Task
     private $history;
 
     /**
-     * Unsplash proxy
-     * @var Simondubois\UnsplashDownloader\Proxy\Unsplash
-     */
-    private $unsplash;
-
-    /**
      * Callback to call when notification arised : function ($message, $level = null) {};
      * @var callable
      */
@@ -73,6 +68,61 @@ class Task
 
 
     //
+    // Getters
+    //
+
+    /**
+     * Get history proxy attribute. Instantiate it if null
+     * @return Simondubois\UnsplashDownloader\History Instance
+     */
+    public function getHistoryInstance()
+    {
+        if (is_null($this->history)) {
+            $this->history = new History();
+        }
+
+        return $this->history;
+    }
+
+    /**
+     * Get notification callback attribute
+     * @return callable function ($message, $level = null) {}
+     */
+    public function getNotificationCallback()
+    {
+        return $this->notificationCallback;
+    }
+
+    /**
+     * Get destination attribute
+     * @param string Path to folder
+     */
+    public function getDestination()
+    {
+        return $this->destination;
+    }
+
+    /**
+     * Get quantity attribute
+     * @param int Number of photos to download
+     */
+    public function getQuantity()
+    {
+        return $this->quantity;
+    }
+
+    /**
+     * Get history path attribute
+     * @param string Path to file
+     */
+    public function getHistory()
+    {
+        return $this->history->getPath();
+    }
+
+
+
+    //
     // Setters
     //
 
@@ -81,8 +131,7 @@ class Task
      */
     public function __construct()
     {
-        $this->history = new History();
-        $this->unsplash = new Unsplash();
+        $this->history = $this->getHistoryInstance();
         $this->notificationCallback = function ($message, $level = null) {};
     }
 
@@ -133,7 +182,7 @@ class Task
      * @param  string $message Message text
      * @param  string $level Message context
      */
-    private function notify($message, $level = null)
+    public function notify($message, $level = null)
     {
         $callback = $this->notificationCallback;
         call_user_func($callback, $message, $level);
@@ -151,11 +200,13 @@ class Task
      */
     public function execute()
     {
-        if ($this->connect() === false) {
+        $unsplash = new Unsplash();
+
+        if ($this->connect($unsplash) === false) {
             return false;
         }
 
-        $photos = $this->getPhotos();
+        $photos = $this->getPhotos($unsplash);
         $success = $this->downloadAllPhotos($photos);
         $this->history->save();
 
@@ -164,13 +215,14 @@ class Task
 
     /**
      * Connect to API
+     * @param Simondubois\UnsplashDownloader\Unsplash $unsplash Proxy to Unsplash API
      * @return boolean True if the connection is successful
      */
-    private function connect()
+    public function connect(Unsplash $unsplash)
     {
         $this->notify('Connect to unsplash... ');
 
-        if ($this->unsplash->initHttpClient()) {
+        if ($unsplash->initHttpClient()) {
             $this->notify('success.'.PHP_EOL, self::NOTIFY_INFO);
             return true;
         }
@@ -180,17 +232,16 @@ class Task
             'Can not connect to unsplash (check your Internet connection)',
             self::ERROR_CONNECTION
         );
-
-        return false;
     }
 
     /**
      * Request APi to get photos to downloads
+     * @param Simondubois\UnsplashDownloader\Unsplash $unsplash Proxy to Unsplash API
      * @return Crew\Unsplash\ArrayObject Photos to download
      */
-    private function getPhotos() {
+    public function getPhotos(Unsplash $unsplash) {
         $this->notify('Get photo list from unsplash... ');
-        $photos = $this->unsplash->allPhotos($this->quantity);
+        $photos = $unsplash->allPhotos($this->quantity);
         $this->notify('success.'.PHP_EOL, 'info');
 
         return $photos;
@@ -201,7 +252,7 @@ class Task
      * @param Crew\Unsplash\ArrayObject $photos Photos to download
      * @return boolean True if all downloads are successful
      */
-    private function downloadAllPhotos(ArrayObject $photos)
+    public function downloadAllPhotos(ArrayObject $photos)
     {
         $success = true;
 
@@ -218,27 +269,27 @@ class Task
      * Download one photo
      * @param  Photo $photo Photo instance
      */
-    private function downloadOnePhoto(Photo $photo)
+    public function downloadOnePhoto(Photo $photo)
     {
+        $source      = $photo->links['download'];
+        $destination = $this->destination.'/'.$photo->id.'.jpg';
+        $this->notify('Download photo from '.$source.' to '.$destination.'... ');
+
         if ($this->history->has($photo->id)) {
-            $this->notify('ignored (in history).'.PHP_EOL, 'comment');
+            $this->notify('ignored (in history).'.PHP_EOL, self::NOTIFY_COMMENT);
             return true;
         }
 
-        $source      = $photo->links['download'];
-        $destination = $this->destination.'/'.$photo->id.'.jpg';
-
-        $this->notify('Download photo from '.$source.' to '.$destination.'... ');
-
         $status = $this->copyFile($source, $destination);
+
         if ($status === false) {
-            $this->notify('failed.'.PHP_EOL, 'error');
+            $this->notify('failed.'.PHP_EOL, self::NOTIFY_ERROR);
             return false;
         }
 
         $this->history->put($photo->id);
 
-        $this->notify('success.'.PHP_EOL, 'info');
+        $this->notify('success.'.PHP_EOL, self::NOTIFY_INFO);
         return true;
     }
 
@@ -247,6 +298,7 @@ class Task
      * @param  string $source      URL to download the file from
      * @param  string $destination Path to download the file to
      * @return bool                True if the copy is successful
+     * @codeCoverageIgnore
      */
     public function copyFile($source, $destination) {
         return @copy($source, $destination);

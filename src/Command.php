@@ -50,20 +50,23 @@ class Command extends SymfonyCommand
      * @param  string|null $context Context of the message
      * @return void
      */
-    public function verboseOutput($message, $context = null) {
+    public function verboseOutput($message, $context = null, $type = OutputInterface::OUTPUT_NORMAL) {
         if ($this->output->getVerbosity() < OutputInterface::VERBOSITY_VERBOSE) {
             return;
         }
 
         if (is_string($context)) {
-            $pattern = '^(.+)('.PHP_EOL.'?)$';
-            $replacement = sprintf("<%s>$1</%s>$2", $context, $message, $context);
-            $subject = $message;
+            $append = '';
 
-            $message = preg_replace($pattern, $replacement, $subject);
+            if (substr($message, -1) === PHP_EOL) {
+                $message = substr($message, 0, -1);
+                $append = PHP_EOL;
+            }
+
+            $message = sprintf('<%s>%s</%s>%s', $context, $message, $context, $append);
         }
 
-        $this->output->write($message);
+        $this->output->write($message, false, $type);
     }
 
 
@@ -74,16 +77,23 @@ class Command extends SymfonyCommand
      * @param  string|null $context Context of the message
      * @return void
      */
-    public function output($message, $context = null) {
+    public function output($message, $context = null, $type = OutputInterface::OUTPUT_NORMAL) {
         if ($this->output->getVerbosity() < OutputInterface::VERBOSITY_NORMAL) {
             return;
         }
 
         if (is_string($context)) {
-            $message = sprintf("<%s>%s</%s>", $context, $message, $context);
+            $append = '';
+
+            if (substr($message, -1) === PHP_EOL) {
+                $message = substr($message, 0, -1);
+                $append = PHP_EOL;
+            }
+
+            $message = sprintf('<%s>%s</%s>%s', $context, $message, $context, $append);
         }
 
-        $this->output->write($message);
+        $this->output->write($message, false, $type);
     }
 
 
@@ -138,35 +148,43 @@ class Command extends SymfonyCommand
      * @param  OutputInterface $output Command output
      * @return void
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output)
     {
         $this->output = $output;
 
-        $task = new Task();
+        $task = $this->task();
+        $this->parameters($task, $input->getOptions());
+        $task->execute();
+    }
 
+    /**
+     * Instantiate a new task
+     * @return Simondubois\UnsplashDownloader\Task Task instance
+     */
+    public function task() {
+        $task = new Task();
         $task->setNotificationCallback([$this, 'output']);
 
-        $this->parameters($task, $input);
-        $task->execute();
+        return $task;
     }
 
     /**
      * Check & validate the parameters
      * @param  Task $task Download task
-     * @param  InputInterface $input Command input
+     * @param  array $options Command options
      * @return void
      */
-    protected function parameters(Task $task, InputInterface $input)
+    public function parameters(Task $task, $options)
     {
-        $destination = $this->destination($input->getOption('destination'));
+        $destination = $this->destination($options['destination']);
         $task->setDestination($destination);
         $this->verboseOutput('Download photos to '.$destination.'.'.PHP_EOL);
 
-        $quantity = $this->quantity($input->getOption('quantity'));
+        $quantity = $this->quantity($options['quantity']);
         $task->setQuantity($quantity);
         $this->verboseOutput('Download the last '.$quantity.' photos.'.PHP_EOL);
 
-        $history = $this->history($input->getOption('history'));
+        $history = $this->history($options['history']);
         $task->setHistory($history);
         if (is_string($history)) {
             $this->verboseOutput('Use '.$history.' as history.'.PHP_EOL);
@@ -256,9 +274,9 @@ class Command extends SymfonyCommand
             );
         }
 
-        if ($quantity >= 100) {
+        if ($quantity > 100) {
             throw new InvalidArgumentException(
-                'The given quantity ('.$quantity.') is too high (should be lower than 100).',
+                'The given quantity ('.$quantity.') is too high (should not be greater than 100).',
                 self::ERROR_QUANTITY_TOOHIGH
             );
         }

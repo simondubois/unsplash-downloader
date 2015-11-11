@@ -1,5 +1,7 @@
 <?php namespace Simondubois\UnsplashDownloader;
 
+use Exception;
+
 /**
  * A proxy to handle history operations like :
  * - loading history from file
@@ -35,6 +37,31 @@ class History
 
 
     //
+    // Getters
+    //
+
+    /**
+     * Get path attribute
+     * @return string Path to file
+     */
+    public function getPath()
+    {
+        return $this->path;
+    }
+
+
+    /**
+     * Get content attribute
+     * @return array Content data
+     */
+    public function getContent()
+    {
+        return $this->content;
+    }
+
+
+
+    //
     // File handling
     //
 
@@ -45,21 +72,16 @@ class History
      */
     public function load($path) {
         if ($this->loaded) {
-            throw new \Exception("The file {$this->path} has already been loaded into history");
+            throw new Exception("The file {$this->path} has already been loaded into history");
         }
 
         $this->path = $path;
-        if (is_file($this->path) === false) {
-            return false;
+
+        if ($this->loadContent()) {
+            $this->loaded = true;
         }
 
-        if ($this->loadContent() === false) {
-            return false;
-        }
-
-        $this->loaded = true;
-
-        return true;
+        return $this->loaded;
     }
 
     /**
@@ -87,7 +109,7 @@ class History
      */
     public function has($str)
     {
-        return $this->loaded && in_array($str, $content);
+        return $this->loaded && in_array($str, $this->content);
     }
 
     /**
@@ -104,7 +126,7 @@ class History
      * @return bool True if the file has been successfully loaded
      */
     private function loadContent() {
-        $content = file($this->path, FILE_IGNORE_NEW_LINES);
+        $content = @file($this->path, FILE_IGNORE_NEW_LINES);
 
         if ($content === false) {
             return false;

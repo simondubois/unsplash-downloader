@@ -9,6 +9,7 @@ use Crew\Unsplash\Photo;
  * - connect to the server.
  * - list photos
  * - download photos
+ * @codeCoverageIgnore
  */
 class Unsplash
 {

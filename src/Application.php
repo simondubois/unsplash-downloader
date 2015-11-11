@@ -7,6 +7,7 @@ use Symfony\Component\Console\Input\InputInterface;
  * An Application is the container for a collection of commands.
  * It is the main entry point of a Console application.
  * This class is optimized for a standard CLI environment.
+ * @codeCoverageIgnore
  */
 class Application extends SymfonyApplication
 {
