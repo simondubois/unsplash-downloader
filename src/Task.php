@@ -43,7 +43,7 @@ class Task
 
     /**
      * History proxy
-     * @var Simondubois\UnsplashDownloader\Proxy\History
+     * @var History
      */
     private $history;
 
@@ -73,7 +73,7 @@ class Task
 
     /**
      * Get history proxy attribute. Instantiate it if null
-     * @return Simondubois\UnsplashDownloader\History Instance
+     * @return History Instance
      */
     public function getHistoryInstance()
     {
@@ -95,7 +95,7 @@ class Task
 
     /**
      * Get destination attribute
-     * @param string Path to folder
+     * @return string Path to folder
      */
     public function getDestination()
     {
@@ -104,7 +104,7 @@ class Task
 
     /**
      * Get quantity attribute
-     * @param int Number of photos to download
+     * @return int Number of photos to download
      */
     public function getQuantity()
     {
@@ -113,7 +113,7 @@ class Task
 
     /**
      * Get history path attribute
-     * @param string Path to file
+     * @return string Path to file
      */
     public function getHistory()
     {
@@ -180,7 +180,7 @@ class Task
     /**
      * Call the notification callback when a notification arised
      * @param  string $message Message text
-     * @param  string $level Message context
+     * @param  string|null $level Message context
      */
     public function notify($message, $level = null)
     {
@@ -215,7 +215,7 @@ class Task
 
     /**
      * Connect to API
-     * @param Simondubois\UnsplashDownloader\Unsplash $unsplash Proxy to Unsplash API
+     * @param Unsplash $unsplash Proxy to Unsplash API
      * @return boolean True if the connection is successful
      */
     public function connect(Unsplash $unsplash)
@@ -236,8 +236,8 @@ class Task
 
     /**
      * Request APi to get photos to downloads
-     * @param Simondubois\UnsplashDownloader\Unsplash $unsplash Proxy to Unsplash API
-     * @return Crew\Unsplash\ArrayObject Photos to download
+     * @param Unsplash $unsplash Proxy to Unsplash API
+     * @return ArrayObject Photos to download
      */
     public function getPhotos(Unsplash $unsplash) {
         $this->notify('Get photo list from unsplash... ');
@@ -249,7 +249,7 @@ class Task
 
     /**
      * Download all photos
-     * @param Crew\Unsplash\ArrayObject $photos Photos to download
+     * @param ArrayObject $photos Photos to download
      * @return boolean True if all downloads are successful
      */
     public function downloadAllPhotos(ArrayObject $photos)

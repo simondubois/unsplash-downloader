@@ -1,5 +1,6 @@
 <?php namespace Simondubois\UnsplashDownloader;
 
+use Crew\Unsplash\ArrayObject;
 use Crew\Unsplash\Connection;
 use Crew\Unsplash\HttpClient;
 use Crew\Unsplash\Photo;
@@ -31,7 +32,7 @@ class Unsplash
     /**
      * Request APi to get some photos
      * @param  int $quantity Number of photos to return
-     * @return Crew\Unsplash\ArrayObject Photos to download
+     * @return ArrayObject Photos to download
      */
     public function allPhotos($quantity) {
         return Photo::all($quantity);

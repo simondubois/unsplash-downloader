@@ -18,7 +18,7 @@ class History
 
     /**
      * Has a file content been loaded
-     * @var string
+     * @var bool
      */
     private $loaded = false;
 
@@ -72,7 +72,7 @@ class History
      */
     public function load($path) {
         if ($this->loaded) {
-            throw new Exception("The file {$this->path} has already been loaded into history");
+            throw new Exception('The file '.$this->path.' has already been loaded into history');
         }
 
         $this->path = $path;

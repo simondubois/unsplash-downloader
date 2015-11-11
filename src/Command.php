@@ -159,7 +159,7 @@ class Command extends SymfonyCommand
 
     /**
      * Instantiate a new task
-     * @return Simondubois\UnsplashDownloader\Task Task instance
+     * @return Task Task instance
      */
     public function task() {
         $task = new Task();

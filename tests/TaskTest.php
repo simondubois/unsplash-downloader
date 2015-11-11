@@ -127,7 +127,10 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $photos = new ArrayObject([], []);
         $task->expects($this->once())->method('connect')->willReturn(true);
         $task->expects($this->once())->method('getPhotos')->willReturn($photos);
-        $task->expects($this->once())->method('downloadAllPhotos')->with($this->identicalTo($photos))->willReturn(false);
+        $task->expects($this->once())
+            ->method('downloadAllPhotos')
+            ->with($this->identicalTo($photos))
+            ->willReturn(false);
         $task->__construct();
         $task->execute();
 
@@ -140,7 +143,10 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $task->expects($this->once())->method('getHistoryInstance')->willReturn($history);
         $task->expects($this->once())->method('connect')->willReturn(true);
         $task->expects($this->once())->method('getPhotos')->willReturn($photos);
-        $task->expects($this->once())->method('downloadAllPhotos')->with($this->identicalTo($photos))->willReturn(false);
+        $task->expects($this->once())
+            ->method('downloadAllPhotos')
+            ->with($this->identicalTo($photos))
+            ->willReturn(false);
         $task->__construct();
         $task->execute();
     }
@@ -202,7 +208,10 @@ class TaskTest extends PHPUnit_Framework_TestCase
 
         // Instantiate proxy
         $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['allPhotos']);
-        $unsplash->expects($this->once())->method('allPhotos')->with($this->identicalTo($quantity))->willReturn($photos);
+        $unsplash->expects($this->once())
+            ->method('allPhotos')
+            ->with($this->identicalTo($quantity))
+            ->willReturn($photos);
 
         // Assert return value
         $this->assertEquals($photos, $task->getPhotos($unsplash));
