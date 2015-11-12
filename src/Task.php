@@ -1,7 +1,7 @@
 <?php namespace Simondubois\UnsplashDownloader;
 
-use Crew\Unsplash\Photo;
 use Crew\Unsplash\ArrayObject;
+use Crew\Unsplash\Photo;
 
 /**
  * A task to download photos
@@ -132,7 +132,7 @@ class Task
     public function __construct()
     {
         $this->history = $this->getHistoryInstance();
-        $this->notificationCallback = function ($message, $level = null) {};
+        $this->notificationCallback = function($message, $level = null) {};
     }
 
     /**

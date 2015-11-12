@@ -17,7 +17,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
     public function testNotificationCallback() {
         // Instantiate task & custom value
         $task = new Task();
-        $notificationCallback = function ($message, $level = null) {
+        $notificationCallback = function($message, $level = null) {
             return $level.':'.$message;
         };
 
