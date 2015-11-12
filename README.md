@@ -46,12 +46,13 @@ CLI stub.
 
 Initial script to define application commands and run it.
 
+
 	src/Application.php
 
 An Application is the container for a collection of commands.
-
 It is the main entry point of a Console application.
 This class is optimized for a standard CLI environment.
+
 
 	src/Download.php
 
@@ -61,6 +62,7 @@ A download command to handle the whole process to download photos. Steps are :
 - create a task (to deal with Unsplash API).
 - execute the task.
 
+
 	src/Task.php
 
 A task to download photos from Unsplash. Steps are
@@ -69,12 +71,14 @@ A task to download photos from Unsplash. Steps are
 - list photos
 - download photos
 
+
 	src/Unsplash.php
 
 A proxy to deal with the Unsplah API :
 
 - connect to the server.
 - list photos
+
 
 	src/History.php
 
