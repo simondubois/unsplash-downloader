@@ -154,19 +154,19 @@ class TaskTest extends PHPUnit_Framework_TestCase
     /**
      * Test Simondubois\UnsplashDownloader\Task::connect()
      */
-    public function testConnect() {
-        // Instantiate task (connection error)
+    public function testFailedConnect() {
+        // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['notify']);
         $task->expects($this->exactly(2))->method('notify')->withConsecutive(
             [$this->anything(), $this->identicalTo(null)],
             [$this->anything(), $this->identicalTo(Task::NOTIFY_ERROR)]
         );
 
-        // Instantiate proxy (connection error)
+        // Instantiate proxy
         $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['initHttpClient']);
         $unsplash->expects($this->once())->method('initHttpClient')->willReturn(false);
 
-        // Assert exception (connection error)
+        // Assert exception
         $exceptionCode = null;
         try {
             $task->connect($unsplash);
@@ -174,19 +174,24 @@ class TaskTest extends PHPUnit_Framework_TestCase
             $exceptionCode = $exception->getCode();
         }
         $this->assertEquals(Task::ERROR_CONNECTION, $exceptionCode);
+    }
 
-        // Instantiate task (connection error)
+    /**
+     * Test Simondubois\UnsplashDownloader\Task::connect()
+     */
+    public function testSuccessfulConnect() {
+        // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['notify']);
         $task->expects($this->exactly(2))->method('notify')->withConsecutive(
             [$this->anything(), $this->identicalTo(null)],
             [$this->anything(), $this->identicalTo(Task::NOTIFY_INFO)]
         );
 
-        // Instantiate proxy (connection error)
+        // Instantiate proxy
         $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['initHttpClient']);
         $unsplash->expects($this->once())->method('initHttpClient')->willReturn(true);
 
-        // Assert return value (connection error)
+        // Assert return value
         $this->assertTrue($task->connect($unsplash));
     }
 
@@ -220,7 +225,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
     /**
      * Test Simondubois\UnsplashDownloader\Task::downloadAllPhotos()
      */
-    public function testDownloadAllPhotos() {
+    public function testFailedDownloadAllPhotos() {
         // Prepare data
         $quantity = 10;
         $photo = new Photo([
@@ -229,7 +234,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
         ]);
         $photos = new ArrayObject(array_fill(0, $quantity, $photo), []);
 
-        // Instantiate task (download error)
+        // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['downloadOnePhoto']);
         $task->expects($this->exactly($quantity))
             ->method('downloadOnePhoto')
@@ -237,10 +242,23 @@ class TaskTest extends PHPUnit_Framework_TestCase
             ->willReturn(false);
         $task->setQuantity($quantity);
 
-        // Assert return value (download error)
+        // Assert return value
         $this->assertEquals(false, $task->downloadAllPhotos($photos));
+    }
 
-        // Instantiate task (download success)
+    /**
+     * Test Simondubois\UnsplashDownloader\Task::downloadAllPhotos()
+     */
+    public function testSuccessfulDownloadAllPhotos() {
+        // Prepare data
+        $quantity = 10;
+        $photo = new Photo([
+            'id' => 1,
+            'links' => ['download' => 'http://example.com']
+        ]);
+        $photos = new ArrayObject(array_fill(0, $quantity, $photo), []);
+
+        // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['downloadOnePhoto']);
         $task->expects($this->exactly($quantity))
             ->method('downloadOnePhoto')
@@ -248,14 +266,14 @@ class TaskTest extends PHPUnit_Framework_TestCase
             ->willReturn(true);
         $task->setQuantity($quantity);
 
-        // Assert return value (download success)
+        // Assert return value
         $this->assertEquals(true, $task->downloadAllPhotos($photos));
     }
 
     /**
      * Test Simondubois\UnsplashDownloader\Task::downloadOnePhoto()
      */
-    public function testDownloadOnePhoto() {
+    public function testDownloadOnePhotoInHistory() {
         // Prepare data
         $destination = 'destination';
         $photoId = 1;
@@ -266,10 +284,12 @@ class TaskTest extends PHPUnit_Framework_TestCase
             'links' => ['download' => $photoSource]
         ]);
 
-        // Assert photo in history
+        // Initiate history
         $history = $this->getMock('Simondubois\UnsplashDownloader\History', ['has', 'put']);
         $history->expects($this->once())->method('has')->willReturn(true);
         $history->expects($this->never())->method('put');
+
+        // Initiate task
         $task = $this->getMockBuilder('Simondubois\UnsplashDownloader\Task')
             ->setMethods(['getHistoryInstance', 'notify'])
             ->disableOriginalConstructor()
@@ -283,14 +303,32 @@ class TaskTest extends PHPUnit_Framework_TestCase
                 [$this->stringContains($photoSource), $this->identicalTo(null)],
                 [$this->anything(), $this->identicalTo(Task::NOTIFY_COMMENT)]
             );
+
+        // Assert download photo in history
         $task->__construct();
         $task->setDestination($destination);
         $this->assertEquals(true, $task->downloadOnePhoto($photo));
+    }
+    /**
+     * Test Simondubois\UnsplashDownloader\Task::downloadOnePhoto()
+     */
+    public function testDownloadOnePhotoFailed() {
+        // Prepare data
+        $destination = 'destination';
+        $photoId = 1;
+        $photoSource = 'http://example.com';
+        $photoDestination = $destination.'/'.$photoId.'.jpg';
+        $photo = new Photo([
+            'id' => $photoId,
+            'links' => ['download' => $photoSource]
+        ]);
 
-        // Assert download failed in history
+        // Initiate history
         $history = $this->getMock('Simondubois\UnsplashDownloader\History', ['has', 'put']);
         $history->expects($this->once())->method('has')->willReturn(false);
         $history->expects($this->never())->method('put');
+
+        // Initiate task
         $task = $this->getMockBuilder('Simondubois\UnsplashDownloader\Task')
             ->setMethods(['getHistoryInstance', 'notify', 'copyFile'])
             ->disableOriginalConstructor()
@@ -308,14 +346,32 @@ class TaskTest extends PHPUnit_Framework_TestCase
             ->method('copyFile')
             ->with($this->identicalTo($photoSource), $this->identicalTo($photoDestination))
             ->willReturn(false);
+
+        // Assert failed download
         $task->__construct();
         $task->setDestination($destination);
         $this->assertEquals(false, $task->downloadOnePhoto($photo));
+    }
+    /**
+     * Test Simondubois\UnsplashDownloader\Task::downloadOnePhoto()
+     */
+    public function testSuccessfulDownloadOnePhoto() {
+        // Prepare data
+        $destination = 'destination';
+        $photoId = 1;
+        $photoSource = 'http://example.com';
+        $photoDestination = $destination.'/'.$photoId.'.jpg';
+        $photo = new Photo([
+            'id' => $photoId,
+            'links' => ['download' => $photoSource]
+        ]);
 
-        // Assert download failed in history
+        // Initiate history
         $history = $this->getMock('Simondubois\UnsplashDownloader\History', ['has', 'put']);
         $history->expects($this->once())->method('has')->willReturn(false);
         $history->expects($this->once())->method('put');
+
+        // Initiate task
         $task = $this->getMockBuilder('Simondubois\UnsplashDownloader\Task')
             ->setMethods(['getHistoryInstance', 'notify', 'copyFile'])
             ->disableOriginalConstructor()
@@ -333,6 +389,8 @@ class TaskTest extends PHPUnit_Framework_TestCase
             ->method('copyFile')
             ->with($this->identicalTo($photoSource), $this->identicalTo($photoDestination))
             ->willReturn(true);
+
+        // Assert successful download
         $task->__construct();
         $task->setDestination($destination);
         $this->assertEquals(true, $task->downloadOnePhoto($photo));
