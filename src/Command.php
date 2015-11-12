@@ -7,8 +7,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * A command to check parameters validity and call a download task.
- * The steps are :
+ * A command to check parameters validity and call a download task. Steps are :
  *  - check option validity (destination, count and history).
  *  - create a task (to deal with Unsplash API).
  *  - execute the task.

@@ -5,7 +5,7 @@ use Exception;
 /**
  * A proxy to handle history operations like :
  * - loading history from file
- * - checking existence of a string in history
+ * - checking existence of a entity in history
  * - appending data to history
  * - saving history to file
  */

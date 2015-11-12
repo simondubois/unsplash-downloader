@@ -4,7 +4,7 @@ use Crew\Unsplash\ArrayObject;
 use Crew\Unsplash\Photo;
 
 /**
- * A task to download photos
+ * A task to download photos from Unsplash. Steps are
  * - connect to the server
  * - list photos
  * - download photos

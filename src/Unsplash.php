@@ -6,10 +6,9 @@ use Crew\Unsplash\HttpClient;
 use Crew\Unsplash\Photo;
 
 /**
- * Proxy to deal with the Unsplah API :
+ * A proxy to deal with the Unsplah API :
  * - connect to the server.
  * - list photos
- * - download photos
  * @codeCoverageIgnore
  */
 class Unsplash

@@ -49,20 +49,29 @@ An Application is the container for a collection of commands.
 It is the main entry point of a Console application.
 This class is optimized for a standard CLI environment.
 
-	src/Command/Download.php
-A download command to handle the whole process to download photos.
-The steps are :
- - check option validity (destination, count and history).
- - create a proxy (to deal with Unsplash API).
- - connect proxy to API.
- - get list of photos.
- - download each photo.
+	src/Download.php
+A download command to handle the whole process to download photos. Steps are :
+- check option validity (destination, count and history).
+- create a task (to deal with Unsplash API).
+- execute the task.
 
-	src/Proxy/Unsplash.php
-Proxy dealing with the Unsplah API :
-- connect to the server.
+	src/Task.php
+A task to download photos from Unsplash. Steps are
+- connect to the server
 - list photos
 - download photos
+
+	src/Unsplash.php
+A proxy to deal with the Unsplah API :
+- connect to the server.
+- list photos
+
+	src/History.php
+A proxy to handle history operations like :
+- loading history from file
+- checking existence of entity in history
+- appending data to history
+- saving history to file
 
 ### Run tests
 	vendor/bin/phpunit
