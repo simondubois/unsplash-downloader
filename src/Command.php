@@ -262,8 +262,7 @@ class Command extends SymfonyCommand
 
     /**
      * Check the quantity value
-     * @return int quantity Formatted quantity value
-     * @return void
+     * @param int quantity Formatted quantity value
      */
     private function quantityValidation($quantity)
     {
