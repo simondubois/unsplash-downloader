@@ -1,9 +1,9 @@
 <?php namespace Tests;
 
 use Exception;
-use org\bovigo\vfs\vfsStream;
 use PHPUnit_Framework_TestCase;
 use Simondubois\UnsplashDownloader\History;
+use org\bovigo\vfs\vfsStream;
 
 class HistoryTest extends PHPUnit_Framework_TestCase
 {
