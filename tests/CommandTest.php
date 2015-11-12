@@ -241,14 +241,9 @@ class CommandTest extends PHPUnit_Framework_TestCase
     /**
      * Test Simondubois\UnsplashDownloader\Command::quantity()
      */
-    public function testQuantity() {
+    public function testNotNumericQuantity() {
         // Instantiate command
         $command = new Command();
-
-        // Valid quantities
-        $this->assertEquals(1, $command->quantity('1'));
-        $this->assertEquals(10, $command->quantity('10'));
-        $this->assertEquals(100, $command->quantity('100'));
 
         // Invalid quantity : not numeric
         $exceptionCode = null;
@@ -258,6 +253,14 @@ class CommandTest extends PHPUnit_Framework_TestCase
             $exceptionCode = $exception->getCode();
         }
         $this->assertEquals(Command::ERROR_QUANTITY_NOTNUMERIC, $exceptionCode);
+    }
+
+    /**
+     * Test Simondubois\UnsplashDownloader\Command::quantity()
+     */
+    public function testNotPositivQuantity() {
+        // Instantiate command
+        $command = new Command();
 
         // Invalid quantity : not positive
         $exceptionCode = null;
@@ -267,6 +270,14 @@ class CommandTest extends PHPUnit_Framework_TestCase
             $exceptionCode = $exception->getCode();
         }
         $this->assertEquals(Command::ERROR_QUANTITY_NOTPOSITIVE, $exceptionCode);
+    }
+
+    /**
+     * Test Simondubois\UnsplashDownloader\Command::quantity()
+     */
+    public function testTooHighQuantity() {
+        // Instantiate command
+        $command = new Command();
 
         // Invalid quantity : too high
         $exceptionCode = null;
@@ -276,6 +287,19 @@ class CommandTest extends PHPUnit_Framework_TestCase
             $exceptionCode = $exception->getCode();
         }
         $this->assertEquals(Command::ERROR_QUANTITY_TOOHIGH, $exceptionCode);
+    }
+
+    /**
+     * Test Simondubois\UnsplashDownloader\Command::quantity()
+     */
+    public function testValidQuantity() {
+        // Instantiate command
+        $command = new Command();
+
+        // Valid quantities
+        $this->assertEquals(1, $command->quantity('1'));
+        $this->assertEquals(10, $command->quantity('10'));
+        $this->assertEquals(100, $command->quantity('100'));
     }
 
     /**
