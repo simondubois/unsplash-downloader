@@ -34,10 +34,8 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($message, $command->output->fetch());
         $command->verboseOutput($message, 'info', OutputInterface::OUTPUT_RAW);
         $this->assertEquals('<info>'.$message.'</info>', $command->output->fetch());
-        $command->output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
         $command->verboseOutput($message.PHP_EOL, 'info', OutputInterface::OUTPUT_RAW);
         $this->assertEquals('<info>'.$message.'</info>'.PHP_EOL, $command->output->fetch());
-
     }
 
     /**
