@@ -46,7 +46,6 @@ class Unsplash
         HttpClient::init([
             'applicationId' => $this->applicationId,
             'secret' => $this->secret,
-            //'callbackUrl' => 'https://github.com/simondubois/unsplash-downloader',
         ]);
 
         return HttpClient::$connection instanceof Connection;

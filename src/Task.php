@@ -134,7 +134,7 @@ class Task
 
     /**
      * Set credential attribute in unsplash instance
-     * @return array Array with two indexes : 'applicationId' & 'secret'
+     * @return array<string,string> Array with two indexes : 'applicationId' & 'secret'
      */
     public function getCredentials()
     {

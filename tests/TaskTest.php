@@ -45,7 +45,9 @@ class TaskTest extends PHPUnit_Framework_TestCase
             'Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'notify', 'copyFile'], [], '', false
         );
 
-        $task->expects($this->once())->method('getHistoryInstance')->willReturn($this->mockHistory($hasHistory, $putHistory));
+        $task->expects($this->once())
+            ->method('getHistoryInstance')
+            ->willReturn($this->mockHistory($hasHistory, $putHistory));
 
         $task->expects($this->exactly(2))->method('notify')->withConsecutive(
             [$this->stringContains('http://example.com'), $this->identicalTo(null)],

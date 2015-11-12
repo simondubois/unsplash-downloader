@@ -222,7 +222,8 @@ class Command extends SymfonyCommand
 
         if (!isset($credentials['applicationId']) || !isset($credentials['secret'])) {
             throw new Exception(
-                'The credentials file is not correct : please check that both applicationId and secret are correctly defined.',
+                'The credentials file is not correct : '
+                    .'please check that both applicationId and secret are correctly defined.',
                 static::ERROR_INCORRECT_CREDENTIALS
             );
         }
