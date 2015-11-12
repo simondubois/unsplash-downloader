@@ -65,6 +65,18 @@ class Task
      */
     private $quantity;
 
+    /**
+     * Unsplash application ID from https://unsplash.com/developers
+     * @var string
+     */
+    private $unsplashApplicationId;
+
+    /**
+     * Unsplash application secret from https://unsplash.com/developers
+     * @var string
+     */
+    private $unsplashSecret;
+
 
 
     //
@@ -120,6 +132,18 @@ class Task
         return $this->history->getPath();
     }
 
+    /**
+     * Set credential attribute in unsplash instance
+     * @return array Array with two indexes : 'applicationId' & 'secret'
+     */
+    public function getCredentials()
+    {
+        return [
+            'applicationId' => $this->unsplashApplicationId,
+            'secret' => $this->unsplashSecret,
+        ];
+    }
+
 
 
     //
@@ -163,12 +187,23 @@ class Task
     }
 
     /**
-     * Set history attribute
+     * Set path attribute in history instance
      * @param string $history Path to file
      */
     public function setHistory($history)
     {
         $this->history->load($history);
+    }
+
+    /**
+     * Set credential attribute in unsplash instance
+     * @param string $applicationId Unsplash application ID
+     * @param string $secret Unsplash secret
+     */
+    public function setCredentials($applicationId, $secret)
+    {
+        $this->unsplashApplicationId = $applicationId;
+        $this->unsplashSecret = $secret;
     }
 
 
@@ -200,7 +235,7 @@ class Task
      */
     public function execute()
     {
-        $unsplash = new Unsplash();
+        $unsplash = new Unsplash($this->unsplashApplicationId, $this->unsplashSecret);
 
         if ($this->connect($unsplash) === false) {
             return false;

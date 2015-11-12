@@ -151,6 +151,30 @@ class TaskTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test Simondubois\UnsplashDownloader\Task::setCredentials()
+     *     & Simondubois\UnsplashDownloader\Task::getCredentials()
+     */
+    public function testCredentials() {
+        // Instantiate task & custom value
+        $task = new Task();
+        $applicationId = 'applicationId';
+        $secret = 'secret';
+        $credentials = [
+            'applicationId' => null,
+            'secret' => null,
+        ];
+
+        // Assert default value
+        $this->assertEquals($credentials, $task->getCredentials());
+
+        // Assert custom value
+        $credentials['applicationId'] = $applicationId;
+        $credentials['secret'] = $secret;
+        $task->setCredentials($applicationId, $secret);
+        $this->assertEquals($credentials, $task->getCredentials());
+    }
+
+    /**
      * Test Simondubois\UnsplashDownloader\Task::execute()
      */
     public function testExecute() {
@@ -222,7 +246,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
         );
 
         // Instantiate proxy
-        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['initHttpClient']);
+        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['initHttpClient'], [null, null]);
         $unsplash->expects($this->once())->method('initHttpClient')->willReturn(false);
 
         // Assert exception
@@ -247,7 +271,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
         );
 
         // Instantiate proxy
-        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['initHttpClient']);
+        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['initHttpClient'], [null, null]);
         $unsplash->expects($this->once())->method('initHttpClient')->willReturn(true);
 
         // Assert return value
@@ -271,7 +295,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $task->setQuantity($quantity);
 
         // Instantiate proxy
-        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['allPhotos']);
+        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['allPhotos'], [null, null]);
         $unsplash->expects($this->once())
             ->method('allPhotos')
             ->with($this->identicalTo($quantity))

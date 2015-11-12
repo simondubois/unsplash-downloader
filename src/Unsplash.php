@@ -13,6 +13,30 @@ use Crew\Unsplash\Photo;
  */
 class Unsplash
 {
+
+    /**
+     * Unsplash application ID from https://unsplash.com/developers
+     * @var string
+     */
+    private $applicationId;
+
+    /**
+     * Unsplash application secret from https://unsplash.com/developers
+     * @var string
+     */
+    private $secret;
+
+    /**
+     * Unsplash constructor (set credentials)
+     * @param string $applicationId Unsplash application ID
+     * @param string $secret Unsplash secret
+     */
+    public function __construct($applicationId, $secret)
+    {
+        $this->applicationId = $applicationId;
+        $this->secret = $secret;
+    }
+
     /**
      * Initialize API connection
      * @return bool True if the connection is successful
@@ -20,9 +44,9 @@ class Unsplash
     public function initHttpClient()
     {
         HttpClient::init([
-            'applicationId' => '797a14e918f07f3559643a10f7c9e0de9d8a94262cd0ea0eb4b12c6d0993ed50',
-            'secret' => 'e23d524da1e336251c8559ccc1214bad54a208f04057d984fd7f008e9039c869',
-            'callbackUrl' => 'https://github.com/simondubois/unsplash-downloader',
+            'applicationId' => $this->applicationId,
+            'secret' => $this->secret,
+            //'callbackUrl' => 'https://github.com/simondubois/unsplash-downloader',
         ]);
 
         return HttpClient::$connection instanceof Connection;
@@ -33,7 +57,8 @@ class Unsplash
      * @param  int $quantity Number of photos to return
      * @return ArrayObject Photos to download
      */
-    public function allPhotos($quantity) {
+    public function allPhotos($quantity)
+    {
         return Photo::all($quantity);
     }
 }

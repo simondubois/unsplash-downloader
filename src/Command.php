@@ -1,6 +1,7 @@
 <?php namespace Simondubois\UnsplashDownloader;
 
 use InvalidArgumentException;
+use Exception;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -9,6 +10,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * A command to check parameters validity and call a download task. Steps are :
  *  - check option validity (destination, count and history).
+ *  - load credentials (from local unsplash.ini file).
  *  - create a task (to deal with Unsplash API).
  *  - execute the task.
  */
@@ -29,6 +31,8 @@ class Command extends SymfonyCommand
     const ERROR_QUANTITY_TOOHIGH       = 5;
     const ERROR_HISTORY_NOTFILE        = 6;
     const ERROR_HISTORY_NOTRW          = 7;
+    const ERROR_NO_CREDENTIALS         = 8;
+    const ERROR_INCORRECT_CREDENTIALS  = 9;
 
     /**
      * Output instance.
@@ -36,6 +40,13 @@ class Command extends SymfonyCommand
      * @var OutputInterface
      */
     public $output;
+
+    /**
+     * Path to INI file where to find API credentials.
+     * File unsplash.ini in the CWD by default.
+     * @var string
+     */
+    public $apiCrendentialsPath = 'unsplash.ini';
 
 
 
@@ -103,7 +114,6 @@ class Command extends SymfonyCommand
 
     /**
      * Configure the Symfony command
-     * @return void
      */
     protected function configure()
     {
@@ -114,7 +124,6 @@ class Command extends SymfonyCommand
 
     /**
      * Set command options
-     * @return void
      */
     private function configureOptions()
     {
@@ -145,7 +154,6 @@ class Command extends SymfonyCommand
      * Process the download based on provided options
      * @param  InputInterface  $input  Command input
      * @param  OutputInterface $output Command output
-     * @return void
      */
     public function execute(InputInterface $input, OutputInterface $output)
     {
@@ -153,6 +161,7 @@ class Command extends SymfonyCommand
 
         $task = $this->task();
         $this->parameters($task, $input->getOptions());
+        $this->apiCredentials($task);
         $task->execute();
     }
 
@@ -171,7 +180,6 @@ class Command extends SymfonyCommand
      * Check & validate the parameters
      * @param  Task $task Download task
      * @param  array $options Command options
-     * @return void
      */
     public function parameters(Task $task, $options)
     {
@@ -190,6 +198,38 @@ class Command extends SymfonyCommand
         } else {
             $this->verboseOutput('Do not use history.'.PHP_EOL);
         }
+    }
+
+    /**
+     * Load API credentials
+     * @param  Task $task Download task
+     */
+    public function apiCredentials(Task $task)
+    {
+        $this->verboseOutput('Load credentials from unsplash.ini :'.PHP_EOL);
+        $credentials = @parse_ini_file($this->apiCrendentialsPath);
+
+        if ($credentials === false) {
+            throw new Exception(
+                'The credentials file has not been found.'.PHP_EOL
+                    .'Please create the file '.$this->apiCrendentialsPath.' with the following content :'.PHP_EOL
+                    .'applicationId = your-application-id'.PHP_EOL
+                    .'secret = your-secret'.PHP_EOL
+                    .'Register to https://unsplash.com/developers to get your gredentials.',
+                static::ERROR_NO_CREDENTIALS
+            );
+        }
+
+        if (!isset($credentials['applicationId']) || !isset($credentials['secret'])) {
+            throw new Exception(
+                'The credentials file is not correct : please check that both applicationId and secret are correctly defined.',
+                static::ERROR_INCORRECT_CREDENTIALS
+            );
+        }
+
+        $this->verboseOutput("\tApplication ID\t: ".$credentials['applicationId'].PHP_EOL);
+        $this->verboseOutput("\tSecret\t\t: ".$credentials['secret'].PHP_EOL);
+        $task->setCredentials($credentials['applicationId'], $credentials['secret']);
     }
 
 
@@ -306,7 +346,6 @@ class Command extends SymfonyCommand
     /**
      * Check if history is not a dir
      * @param  string $history Parameter value
-     * @return void
      */
     private function historyValidationType($history)
     {
@@ -321,7 +360,6 @@ class Command extends SymfonyCommand
     /**
      * Check if history is accessible
      * @param  string $history Parameter value
-     * @return void
      */
     private function historyValidationAccess($history)
     {

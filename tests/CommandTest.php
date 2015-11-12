@@ -1,5 +1,6 @@
 <?php namespace Tests;
 
+use Exception;
 use InvalidArgumentException;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit_Framework_TestCase;
@@ -73,10 +74,11 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $task->expects($this->once())->method('execute');
 
         // Mock command
-        $command = $this->getMock('Simondubois\UnsplashDownloader\Command', ['task', 'parameters']);
+        $command = $this->getMock('Simondubois\UnsplashDownloader\Command', ['task', 'parameters', 'apiCredentials']);
         $command->expects($this->once())->method('task')->willReturn($task);
         $command->expects($this->once())->method('parameters')
             ->with($this->identicalTo($task), $this->anything());
+        $command->expects($this->once())->method('apiCredentials')->with($this->identicalTo($task));
 
         // Execute command
         $input = new ArrayInput([], $command->getDefinition());
@@ -110,21 +112,21 @@ class CommandTest extends PHPUnit_Framework_TestCase
         mkdir($destination);
         $history = $root.'/history';
 
-        // Instantiate task (with history)
-        $task = $this->getMock(
-            'Simondubois\UnsplashDownloader\Task',
-            ['setDestination', 'setQuantity', 'setHistory']
-        );
-        $task->expects($this->once())->method('setDestination');
-        $task->expects($this->once())->method('setQuantity');
-        $task->expects($this->once())->method('setHistory');
-
         // Assert attribute assignation (with history)
         $options = [
             'destination' => $destination,
             'quantity' => '10',
             'history' => $history,
         ];
+
+        // Instantiate task (with history)
+        $task = $this->getMock(
+            'Simondubois\UnsplashDownloader\Task',
+            ['setDestination', 'setQuantity', 'setHistory']
+        );
+        $task->expects($this->once())->method('setDestination')->with($this->identicalTo($destination));
+        $task->expects($this->once())->method('setQuantity')->with($this->identicalTo(10));
+        $task->expects($this->once())->method('setHistory')->with($this->identicalTo($history));
         $command->parameters($task, $options);
 
         // Assert output content (with history)
@@ -133,28 +135,95 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $this->assertContains($options['quantity'], $output);
         $this->assertContains($options['history'], $output);
 
-        // Instantiate task (without history)
-        $task = $this->getMock(
-            'Simondubois\UnsplashDownloader\Task',
-            ['setDestination', 'setQuantity', 'setHistory']
-        );
-        $task->expects($this->once())->method('setDestination');
-        $task->expects($this->once())->method('setQuantity');
-        $task->expects($this->once())->method('setHistory');
-
         // Assert attribute assignation (without history)
         $options = [
             'destination' => $destination,
             'quantity' => '10',
             'history' => null,
         ];
-        $command->parameters($task, $options);
+
+        // Instantiate task (without history)
+        $task = $this->getMock(
+            'Simondubois\UnsplashDownloader\Task',
+            ['setDestination', 'setQuantity', 'setHistory']
+        );
+        $task->expects($this->once())->method('setDestination')->with($this->identicalTo($destination));
+        $task->expects($this->once())->method('setQuantity')->with($this->identicalTo(10));
+        $task->expects($this->once())->method('setHistory')->with($this->identicalTo(null));
 
         // Assert output content (without history)
+        $command->parameters($task, $options);
         $output = $command->output->fetch();
         $this->assertContains($options['destination'], $output);
         $this->assertContains($options['quantity'], $output);
         $this->assertContains('Do not use history.', $output);
+    }
+
+    /**
+     * Test Simondubois\UnsplashDownloader\Command::apiCredentials()
+     */
+    public function testNoCredentialsApiCredentials() {
+        // Instantiate command
+        $command = new Command();
+        $command->output = new BufferedOutput();
+        $command->apiCrendentialsPath = vfsStream::setup('test')->url().'/unsplash.ini';
+
+        // Instantiate task
+        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['setCredentials']);
+        $task->expects($this->never())->method('setCredentials');
+        // Assert no credentials
+        $exceptionCode = null;
+        try {
+            $command->apiCredentials($task);
+        } catch (Exception $exception) {
+            $exceptionCode = $exception->getCode();
+        }
+        $this->assertEquals(Command::ERROR_NO_CREDENTIALS, $exceptionCode);
+    }
+
+    /**
+     * Test Simondubois\UnsplashDownloader\Command::apiCredentials()
+     */
+    public function testIncorrectCredentialsApiCredentials() {
+        // Instantiate command
+        $command = new Command();
+        $command->output = new BufferedOutput();
+        $command->apiCrendentialsPath = vfsStream::setup('test')->url().'/unsplash.ini';
+        touch($command->apiCrendentialsPath);
+
+        // Instantiate task
+        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['setCredentials']);
+        $task->expects($this->never())->method('setCredentials');
+
+        // Assert incorrect credentials
+        $exceptionCode = null;
+        try {
+            $command->apiCredentials($task);
+        } catch (Exception $exception) {
+            $exceptionCode = $exception->getCode();
+        }
+        $this->assertEquals(Command::ERROR_INCORRECT_CREDENTIALS, $exceptionCode);
+    }
+
+    /**
+     * Test Simondubois\UnsplashDownloader\Command::apiCredentials()
+     */
+    public function testSuccessfulApiCredentials() {
+        // Instantiate command
+        $command = new Command();
+        $command->output = new BufferedOutput();
+        $command->apiCrendentialsPath = vfsStream::setup('test')->url().'/unsplash.ini';
+        $credentials = 'applicationId = your-application-id'.PHP_EOL.'secret = your-secret'.PHP_EOL;
+        file_put_contents($command->apiCrendentialsPath, $credentials);
+
+        // Instantiate task
+        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['setCredentials']);
+        $task->expects($this->once())
+            ->method('setCredentials')
+            ->with($this->identicalTo('your-application-id'), $this->identicalTo('your-secret'));
+
+        // Assert no credentials
+        $command->apiCredentials($task);
     }
 
     /**
