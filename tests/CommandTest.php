@@ -74,11 +74,14 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $task->expects($this->once())->method('execute');
 
         // Mock command
-        $command = $this->getMock('Simondubois\UnsplashDownloader\Command', ['task', 'parameters', 'apiCredentials']);
+        $command = $this->getMock(
+            'Simondubois\UnsplashDownloader\Command',
+            ['task', 'parameters', 'loadApiCredentials']
+        );
         $command->expects($this->once())->method('task')->willReturn($task);
         $command->expects($this->once())->method('parameters')
             ->with($this->identicalTo($task), $this->anything());
-        $command->expects($this->once())->method('apiCredentials')->with($this->identicalTo($task));
+        $command->expects($this->once())->method('loadApiCredentials')->with($this->identicalTo($task));
 
         // Execute command
         $input = new ArrayInput([], $command->getDefinition());
@@ -160,7 +163,8 @@ class CommandTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test Simondubois\UnsplashDownloader\Command::apiCredentials()
+     * Test Simondubois\UnsplashDownloader\Command::loadApiCredentials()
+     *     & Simondubois\UnsplashDownloader\Command::validApiCredentials()
      */
     public function testNoCredentialsApiCredentials() {
         // Instantiate command
@@ -174,7 +178,7 @@ class CommandTest extends PHPUnit_Framework_TestCase
         // Assert no credentials
         $exceptionCode = null;
         try {
-            $command->apiCredentials($task);
+            $command->loadApiCredentials($task);
         } catch (Exception $exception) {
             $exceptionCode = $exception->getCode();
         }
@@ -182,7 +186,8 @@ class CommandTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test Simondubois\UnsplashDownloader\Command::apiCredentials()
+     * Test Simondubois\UnsplashDownloader\Command::loadApiCredentials()
+     *     & Simondubois\UnsplashDownloader\Command::validApiCredentials()
      */
     public function testIncorrectCredentialsApiCredentials() {
         // Instantiate command
@@ -198,7 +203,7 @@ class CommandTest extends PHPUnit_Framework_TestCase
         // Assert incorrect credentials
         $exceptionCode = null;
         try {
-            $command->apiCredentials($task);
+            $command->loadApiCredentials($task);
         } catch (Exception $exception) {
             $exceptionCode = $exception->getCode();
         }
@@ -206,7 +211,8 @@ class CommandTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test Simondubois\UnsplashDownloader\Command::apiCredentials()
+     * Test Simondubois\UnsplashDownloader\Command::loadApiCredentials()
+     *     & Simondubois\UnsplashDownloader\Command::validApiCredentials()
      */
     public function testSuccessfulApiCredentials() {
         // Instantiate command
@@ -223,7 +229,7 @@ class CommandTest extends PHPUnit_Framework_TestCase
             ->with($this->identicalTo('your-application-id'), $this->identicalTo('your-secret'));
 
         // Assert no credentials
-        $command->apiCredentials($task);
+        $command->loadApiCredentials($task);
     }
 
     /**

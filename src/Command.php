@@ -161,7 +161,7 @@ class Command extends SymfonyCommand
 
         $task = $this->task();
         $this->parameters($task, $input->getOptions());
-        $this->apiCredentials($task);
+        $this->loadApiCredentials($task);
         $task->execute();
     }
 
@@ -204,7 +204,7 @@ class Command extends SymfonyCommand
      * Load API credentials
      * @param  Task $task Download task
      */
-    public function apiCredentials(Task $task)
+    public function loadApiCredentials(Task $task)
     {
         $this->verboseOutput('Load credentials from unsplash.ini :'.PHP_EOL);
         $credentials = @parse_ini_file($this->apiCrendentialsPath);
@@ -220,6 +220,15 @@ class Command extends SymfonyCommand
             );
         }
 
+        $this->validApiCredentials($task, $credentials);
+    }
+
+    /**
+     * Valid loaded credentials and assign credentials to the task
+     * @param  Task $task Download task
+     * @param  array $credentials Loaded credentials
+     */
+    private function validApiCredentials(Task $task, $credentials) {
         if (!isset($credentials['applicationId']) || !isset($credentials['secret'])) {
             throw new Exception(
                 'The credentials file is not correct : '
@@ -232,7 +241,6 @@ class Command extends SymfonyCommand
         $this->verboseOutput("\tSecret\t\t: ".$credentials['secret'].PHP_EOL);
         $task->setCredentials($credentials['applicationId'], $credentials['secret']);
     }
-
 
 
     //
