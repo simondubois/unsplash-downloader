@@ -47,7 +47,7 @@ class Command extends SymfonyCommand
      * Output text only if run with verbose attribute
      * @param  string  $message Text to output
      * @param  string|null $context Context of the message
-     * @return void
+     * @param  int $type Symfony output type
      */
     public function verboseOutput($message, $context = null, $type = OutputInterface::OUTPUT_NORMAL) {
         if ($this->output->getVerbosity() < OutputInterface::VERBOSITY_VERBOSE) {
@@ -74,7 +74,7 @@ class Command extends SymfonyCommand
      * Output text only if run with verbose attribute
      * @param  string  $message Text to output
      * @param  string|null $context Context of the message
-     * @return void
+     * @param  int $type Symfony output type
      */
     public function output($message, $context = null, $type = OutputInterface::OUTPUT_NORMAL) {
         if ($this->output->getVerbosity() < OutputInterface::VERBOSITY_NORMAL) {
@@ -261,7 +261,7 @@ class Command extends SymfonyCommand
 
     /**
      * Check the quantity value
-     * @param int quantity Formatted quantity value
+     * @param int $quantity Formatted quantity value
      */
     private function quantityValidation($quantity)
     {

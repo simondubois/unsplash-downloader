@@ -114,7 +114,7 @@ class History
 
     /**
      * Append a string to the history
-     * @param  string $str [description]
+     * @param  string $str String to add to history
      */
     public function put($str)
     {
