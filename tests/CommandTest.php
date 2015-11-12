@@ -21,27 +21,19 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $command->output = new BufferedOutput();
         $message = 'This is a message'.PHP_EOL.'split on many'.PHP_EOL.'lines';
 
-        // Output without context for verbosity : normal
+        // Output for verbosity : normal
         $command->output->setVerbosity(OutputInterface::VERBOSITY_NORMAL);
         $command->verboseOutput($message);
         $this->assertEmpty($command->output->fetch());
+        $command->verboseOutput($message, 'info');
+        $this->assertEmpty($command->output->fetch());
 
-        // Output without context for verbosity : verbose
+        // Output for verbosity : verbose
         $command->output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
         $command->verboseOutput($message);
         $this->assertEquals($message, $command->output->fetch());
-
-        // Output with context for verbosity : normal
-        $command->output->setVerbosity(OutputInterface::VERBOSITY_NORMAL);
-        $command->verboseOutput($message, 'info');
-        $this->assertEquals('', $command->output->fetch());
-
-        // Output with context for verbosity : verbose
-        $command->output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
         $command->verboseOutput($message, 'info', OutputInterface::OUTPUT_RAW);
         $this->assertEquals('<info>'.$message.'</info>', $command->output->fetch());
-
-        // Output ending with new line with context for verbosity : verbose
         $command->output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
         $command->verboseOutput($message.PHP_EOL, 'info', OutputInterface::OUTPUT_RAW);
         $this->assertEquals('<info>'.$message.'</info>'.PHP_EOL, $command->output->fetch());
@@ -57,28 +49,19 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $command->output = new BufferedOutput();
         $message = 'This is a message'.PHP_EOL.'split on many'.PHP_EOL.'lines';
 
-        // Output without context for verbosity : quiet
+        // Output for verbosity : quiet
         $command->output->setVerbosity(OutputInterface::VERBOSITY_QUIET);
         $command->output($message);
         $this->assertEmpty($command->output->fetch());
+        $command->output($message, 'info');
+        $this->assertEmpty($command->output->fetch());
 
-        // Output without context for verbosity : normal
+        // Output for verbosity : normal
         $command->output->setVerbosity(OutputInterface::VERBOSITY_NORMAL);
         $command->output($message);
         $this->assertEquals($message, $command->output->fetch());
-
-        // Output with context for verbosity : quiet
-        $command->output->setVerbosity(OutputInterface::VERBOSITY_QUIET);
-        $command->output($message, 'info');
-        $this->assertEquals('', $command->output->fetch());
-
-        // Output with context for verbosity : normal
-        $command->output->setVerbosity(OutputInterface::VERBOSITY_NORMAL);
         $command->output($message, 'info', OutputInterface::OUTPUT_RAW);
         $this->assertEquals('<info>'.$message.'</info>', $command->output->fetch());
-
-        // Output ending with new line with context for verbosity : normal
-        $command->output->setVerbosity(OutputInterface::VERBOSITY_NORMAL);
         $command->output($message.PHP_EOL, 'info', OutputInterface::OUTPUT_RAW);
         $this->assertEquals('<info>'.$message.'</info>'.PHP_EOL, $command->output->fetch());
     }
@@ -179,24 +162,17 @@ class CommandTest extends PHPUnit_Framework_TestCase
     /**
      * Test Simondubois\UnsplashDownloader\Command::destination()
      */
-    public function testDestination() {
+    public function testNotDirectoryDestination() {
         // Instantiate command
         $command = new Command();
 
         // Instiantiate file system
         $root = vfsStream::setup('test')->url();
-        $existingFolder = $root.'/existingFolder';
-        mkdir($existingFolder);
         $existingFile = $root.'/existingFile';
         touch($existingFile);
         $missingFolder = $root.'/missingFolder';
-        $unwritableFolder = $root.'/unwritableFolder';
-        mkdir($unwritableFolder, 0000);
 
-        // Valid destination
-        $this->assertEquals($existingFolder, $command->destination($existingFolder));
-
-        // Invalid destination : not directory
+        // Invalid destination : existing file
         $exceptionCode = null;
         try {
             $command->destination($existingFile);
@@ -205,7 +181,7 @@ class CommandTest extends PHPUnit_Framework_TestCase
         }
         $this->assertEquals(Command::ERROR_DESTINATION_NOTDIR, $exceptionCode);
 
-        // Invalid destination : not directory
+        // Invalid destination : missing folder
         $exceptionCode = null;
         try {
             $command->destination($missingFolder);
@@ -213,8 +189,21 @@ class CommandTest extends PHPUnit_Framework_TestCase
             $exceptionCode = $exception->getCode();
         }
         $this->assertEquals(Command::ERROR_DESTINATION_NOTDIR, $exceptionCode);
+    }
 
-        // Invalid destination : not writable
+    /**
+     * Test Simondubois\UnsplashDownloader\Command::destination()
+     */
+    public function testUnwritableDestination() {
+        // Instantiate command
+        $command = new Command();
+
+        // Instiantiate file system
+        $root = vfsStream::setup('test')->url();
+        $unwritableFolder = $root.'/unwritableFolder';
+        mkdir($unwritableFolder, 0000);
+
+        // Asert destination
         $exceptionCode = null;
         try {
             $command->destination($unwritableFolder);
@@ -222,6 +211,22 @@ class CommandTest extends PHPUnit_Framework_TestCase
             $exceptionCode = $exception->getCode();
         }
         $this->assertEquals(Command::ERROR_DESTINATION_UNWRITABLE, $exceptionCode);
+    }
+
+    /**
+     * Test Simondubois\UnsplashDownloader\Command::destination()
+     */
+    public function testSuccessfulDestination() {
+        // Instantiate command
+        $command = new Command();
+
+        // Instiantiate file system
+        $root = vfsStream::setup('test')->url();
+        $existingFolder = $root.'/existingFolder';
+        mkdir($existingFolder);
+
+        // Valid destination
+        $this->assertEquals($existingFolder, $command->destination($existingFolder));
     }
 
     /**
