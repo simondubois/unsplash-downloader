@@ -34,8 +34,8 @@ class TaskTest extends PHPUnit_Framework_TestCase
 
     /**
      * Mock Task class for downloadOnePhoto() method tests
-     * @param  mixed $has Value returned by History::has() method, null for no call to History::has() method.
-     * @param  mixed $put Value returned by History::put() method, null for no call to History::put() method.
+     * @param  mixed $hasHistory Value returned by History::has() method, null for no call to History::has() method.
+     * @param  mixed $putHistory Value returned by History::put() method, null for no call to History::put() method.
      * @param  string $notificationStatus Status to pass to notify() method
      * @param  mixed $copyFile Value returned by copyFile() method, null for no call to History::copyFile() method.
      * @return object Mocked task
