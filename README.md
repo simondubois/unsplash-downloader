@@ -42,12 +42,11 @@ Filename to use as download history. When photos are downloaded, their IDs will 
 
 	cli/index.php
 
-CLI stub.
-
-Initial script to define application commands and run it.
+CLI stub. Initial script to define application commands and run it.
 
 
 	src/Application.php
+
 
 An Application is the container for a collection of commands.
 It is the main entry point of a Console application.
@@ -55,6 +54,7 @@ This class is optimized for a standard CLI environment.
 
 
 	src/Download.php
+
 
 A download command to handle the whole process to download photos. Steps are :
 
@@ -65,6 +65,7 @@ A download command to handle the whole process to download photos. Steps are :
 
 	src/Task.php
 
+
 A task to download photos from Unsplash. Steps are
 
 - connect to the server
@@ -74,6 +75,7 @@ A task to download photos from Unsplash. Steps are
 
 	src/Unsplash.php
 
+
 A proxy to deal with the Unsplah API :
 
 - connect to the server.
@@ -81,6 +83,7 @@ A proxy to deal with the Unsplah API :
 
 
 	src/History.php
+
 
 A proxy to handle history operations like :
 
