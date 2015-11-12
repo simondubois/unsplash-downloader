@@ -105,7 +105,13 @@ class TaskTest extends PHPUnit_Framework_TestCase
     public function testExecute() {
         // Assert connect error
         $history = $this->getMock('Simondubois\UnsplashDownloader\History');
-        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'connect', 'getPhotos', 'downloadAllPhotos'], [], '', false);
+        $task = $this->getMock(
+            'Simondubois\UnsplashDownloader\Task',
+            ['getHistoryInstance', 'connect', 'getPhotos', 'downloadAllPhotos'],
+            [],
+            '',
+            false
+        );
         $task->expects($this->once())->method('getHistoryInstance')->willReturn($history);
         $task->expects($this->once())->method('connect')->willReturn(false);
         $task->expects($this->never())->method('getPhotos');
@@ -115,7 +121,13 @@ class TaskTest extends PHPUnit_Framework_TestCase
 
         // Assert download error
         $history = $this->getMock('Simondubois\UnsplashDownloader\History');
-        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'connect', 'getPhotos', 'downloadAllPhotos'], [], '', false);
+        $task = $this->getMock(
+            'Simondubois\UnsplashDownloader\Task',
+            ['getHistoryInstance', 'connect', 'getPhotos', 'downloadAllPhotos'],
+            [],
+            '',
+            false
+        );
         $task->expects($this->once())->method('getHistoryInstance')->willReturn($history);
         $photos = new ArrayObject([], []);
         $task->expects($this->once())->method('connect')->willReturn(true);
@@ -129,7 +141,13 @@ class TaskTest extends PHPUnit_Framework_TestCase
 
         // Assert success
         $history = $this->getMock('Simondubois\UnsplashDownloader\History');
-        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'connect', 'getPhotos', 'downloadAllPhotos'], [], '', false);
+        $task = $this->getMock(
+            'Simondubois\UnsplashDownloader\Task',
+            ['getHistoryInstance', 'connect', 'getPhotos', 'downloadAllPhotos'],
+            [],
+            '',
+            false
+        );
         $task->expects($this->once())->method('getHistoryInstance')->willReturn($history);
         $task->expects($this->once())->method('connect')->willReturn(true);
         $task->expects($this->once())->method('getPhotos')->willReturn($photos);
@@ -295,7 +313,9 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $history->expects($this->never())->method('put');
 
         // Initiate task
-        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'notify', 'copyFile'], [], '', false);
+        $task = $this->getMock(
+            'Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'notify', 'copyFile'], [], '', false
+        );
         $task->expects($this->once())->method('getHistoryInstance')->willReturn($history);
         $task->expects($this->exactly(2))->method('notify')->withConsecutive(
             [$this->stringContains('http://example.com'), $this->identicalTo(null)],
@@ -325,7 +345,9 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $history->expects($this->once())->method('put');
 
         // Initiate task
-        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'notify', 'copyFile'], [], '', false);
+        $task = $this->getMock(
+            'Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'notify', 'copyFile'], [], '', false
+        );
         $task->expects($this->once())->method('getHistoryInstance')->willReturn($history);
         $task->expects($this->exactly(2))->method('notify')->withConsecutive(
             [$this->stringContains('http://example.com'), $this->identicalTo(null)],
