@@ -162,7 +162,7 @@ class CommandTest extends PHPUnit_Framework_TestCase
     /**
      * Test Simondubois\UnsplashDownloader\Command::destination()
      */
-    public function testNotDirectoryDestination() {
+    public function testFileDestination() {
         // Instantiate command
         $command = new Command();
 
@@ -170,7 +170,6 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $root = vfsStream::setup('test')->url();
         $existingFile = $root.'/existingFile';
         touch($existingFile);
-        $missingFolder = $root.'/missingFolder';
 
         // Invalid destination : existing file
         $exceptionCode = null;
@@ -180,6 +179,18 @@ class CommandTest extends PHPUnit_Framework_TestCase
             $exceptionCode = $exception->getCode();
         }
         $this->assertEquals(Command::ERROR_DESTINATION_NOTDIR, $exceptionCode);
+    }
+
+    /**
+     * Test Simondubois\UnsplashDownloader\Command::destination()
+     */
+    public function testMissingFolderDestination() {
+        // Instantiate command
+        $command = new Command();
+
+        // Instiantiate file system
+        $root = vfsStream::setup('test')->url();
+        $missingFolder = $root.'/missingFolder';
 
         // Invalid destination : missing folder
         $exceptionCode = null;
