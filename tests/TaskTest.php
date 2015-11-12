@@ -10,6 +10,30 @@ class TaskTest extends PHPUnit_Framework_TestCase
 {
 
     /**
+     * Mock History class and stub has() & put() methods
+     * @param  mixed $has Value returned by has() method, null to not stub has() method.
+     * @param  mixed $put Value returned by put() method, null to not stub put() method.
+     * @return object Mocked history
+     */
+    private function mockHistory($has, $put = null) {
+        $methods = [
+            'has' => $has,
+            'put' => $put,
+        ];
+
+        $history = $this->getMock('Simondubois\UnsplashDownloader\History', array_keys($methods));
+
+        foreach ($methods as $key => $value) {
+            $history->expects(is_null($value) ? $this->never() : $this->once())
+                ->method($key)
+                ->willReturn($value);
+        }
+
+        return $history;
+    }
+
+
+    /**
      * Test Simondubois\UnsplashDownloader\Task::getNotificationCallback()
      *     & Simondubois\UnsplashDownloader\Task::setNotificationCallback()
      */
@@ -282,14 +306,9 @@ class TaskTest extends PHPUnit_Framework_TestCase
      * Test Simondubois\UnsplashDownloader\Task::downloadOnePhoto()
      */
     public function testDownloadOnePhotoInHistory() {
-        // Initiate history
-        $history = $this->getMock('Simondubois\UnsplashDownloader\History', ['has', 'put']);
-        $history->expects($this->once())->method('has')->willReturn(true);
-        $history->expects($this->never())->method('put');
-
         // Initiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'notify'], [], '', false);
-        $task->expects($this->once())->method('getHistoryInstance')->willReturn($history);
+        $task->expects($this->once())->method('getHistoryInstance')->willReturn($this->mockHistory(true));
         $task->expects($this->exactly(2))->method('notify')->withConsecutive(
             [$this->stringContains('http://example.com'), $this->identicalTo(null)],
             [$this->anything(), $this->identicalTo(Task::NOTIFY_COMMENT)]
@@ -307,16 +326,11 @@ class TaskTest extends PHPUnit_Framework_TestCase
      * Test Simondubois\UnsplashDownloader\Task::downloadOnePhoto()
      */
     public function testDownloadOnePhotoFailed() {
-        // Initiate history
-        $history = $this->getMock('Simondubois\UnsplashDownloader\History', ['has', 'put']);
-        $history->expects($this->once())->method('has')->willReturn(false);
-        $history->expects($this->never())->method('put');
-
         // Initiate task
         $task = $this->getMock(
             'Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'notify', 'copyFile'], [], '', false
         );
-        $task->expects($this->once())->method('getHistoryInstance')->willReturn($history);
+        $task->expects($this->once())->method('getHistoryInstance')->willReturn($this->mockHistory(false));
         $task->expects($this->exactly(2))->method('notify')->withConsecutive(
             [$this->stringContains('http://example.com'), $this->identicalTo(null)],
             [$this->anything(), $this->identicalTo(Task::NOTIFY_ERROR)]
@@ -339,16 +353,11 @@ class TaskTest extends PHPUnit_Framework_TestCase
      * Test Simondubois\UnsplashDownloader\Task::downloadOnePhoto()
      */
     public function testSuccessfulDownloadOnePhoto() {
-        // Initiate history
-        $history = $this->getMock('Simondubois\UnsplashDownloader\History', ['has', 'put']);
-        $history->expects($this->once())->method('has')->willReturn(false);
-        $history->expects($this->once())->method('put');
-
         // Initiate task
         $task = $this->getMock(
             'Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'notify', 'copyFile'], [], '', false
         );
-        $task->expects($this->once())->method('getHistoryInstance')->willReturn($history);
+        $task->expects($this->once())->method('getHistoryInstance')->willReturn($this->mockHistory(false, true));
         $task->expects($this->exactly(2))->method('notify')->withConsecutive(
             [$this->stringContains('http://example.com'), $this->identicalTo(null)],
             [$this->anything(), $this->identicalTo(Task::NOTIFY_INFO)]
