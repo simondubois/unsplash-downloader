@@ -9,14 +9,14 @@ CLI to download photos from unsplash.com
 
 
 ## Usage
-    unsplash-downloader [--destination DESTINATION] [--quantity QUANTITY] [--history HISTORY]
+	unsplash-downloader [--destination DESTINATION] [--quantity QUANTITY] [--history HISTORY]
 
 ### Executable
 The executable is located into the build directory.
 The only requirement is to have PHP installed.
 
 ### Options
-    --destination DESTINATION
+	--destination DESTINATION
 Directory where to download photos.
 *Default: current working directory.*
 
@@ -32,29 +32,25 @@ Filename to use as download history. When photos are downloaded, their IDs will 
 ## Build from source
 
 ### Get sources
-    git clone git@github.com:simondubois/unsplash-downloader.git
+	git clone git@github.com:simondubois/unsplash-downloader.git
 
 ### Install dependencies
-    cd unsplash-downloader/
-    composer install
+	cd unsplash-downloader/
+	composer install
 
 ### Make your changes
 
-    cli/index.php
+	cli/index.php
 
 CLI stub. Initial script to define application commands and run it.
 
-
-    src/Application.php
-
+	src/Application.php
 
 An Application is the container for a collection of commands.
 It is the main entry point of a Console application.
 This class is optimized for a standard CLI environment.
 
-
-    src/Download.php
-
+	src/Download.php
 
 A download command to handle the whole process to download photos. Steps are :
 
@@ -62,9 +58,7 @@ A download command to handle the whole process to download photos. Steps are :
 - create a task (to deal with Unsplash API).
 - execute the task.
 
-
-    src/Task.php
-
+	src/Task.php
 
 A task to download photos from Unsplash. Steps are
 
@@ -72,18 +66,14 @@ A task to download photos from Unsplash. Steps are
 - list photos
 - download photos
 
-
-    src/Unsplash.php
-
+	src/Unsplash.php
 
 A proxy to deal with the Unsplah API :
 
 - connect to the server.
 - list photos
 
-
-    src/History.php
-
+	src/History.php
 
 A proxy to handle history operations like :
 
@@ -93,9 +83,9 @@ A proxy to handle history operations like :
 - saving history to file
 
 ### Run tests
-    vendor/bin/phpunit
+	vendor/bin/phpunit
 Test coverage can be found under `tests/coverage`.
 
 ### Build PHAR
-    php create-phar.php
+	php create-phar.php
 The generated PHAR can be found under `build`.
