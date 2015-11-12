@@ -305,25 +305,14 @@ class CommandTest extends PHPUnit_Framework_TestCase
     /**
      * Test Simondubois\UnsplashDownloader\Command::history()
      */
-    public function testHistory() {
+    public function testNotFileHistory() {
         // Instantiate command
         $command = new Command();
 
         // Instiantiate file system
         $root = vfsStream::setup('test')->url();
-        $existingFile = $root.'/existingFile';
-        touch($existingFile);
-        $missingFile = $root.'/missingFile';
         $existingFolder = $root.'/existingFolder';
         mkdir($existingFolder);
-        $unwritableFolder = $root.'/unwritableFolder';
-        mkdir($unwritableFolder, 0000);
-        $unwritableFile = $unwritableFolder.'/unwritableFile';
-
-        // Valid history
-        $this->assertNull($command->history(null));
-        $this->assertEquals($existingFile, $command->history($existingFile));
-        $this->assertEquals($missingFile, $command->history($missingFile));
 
         // Invalid history : not file
         $exceptionCode = null;
@@ -333,8 +322,22 @@ class CommandTest extends PHPUnit_Framework_TestCase
             $exceptionCode = $exception->getCode();
         }
         $this->assertEquals(Command::ERROR_HISTORY_NOTFILE, $exceptionCode);
+    }
 
-        // Invalid history : not directory
+    /**
+     * Test Simondubois\UnsplashDownloader\Command::history()
+     */
+    public function testUnwritableHistory() {
+        // Instantiate command
+        $command = new Command();
+
+        // Instiantiate file system
+        $root = vfsStream::setup('test')->url();
+        $unwritableFolder = $root.'/unwritableFolder';
+        mkdir($unwritableFolder, 0000);
+        $unwritableFile = $unwritableFolder.'/unwritableFile';
+
+        // Invalid history : not writable
         $exceptionCode = null;
         try {
             $command->history($unwritableFile);
@@ -342,6 +345,25 @@ class CommandTest extends PHPUnit_Framework_TestCase
             $exceptionCode = $exception->getCode();
         }
         $this->assertEquals(Command::ERROR_HISTORY_NOTRW, $exceptionCode);
+    }
+
+    /**
+     * Test Simondubois\UnsplashDownloader\Command::history()
+     */
+    public function testValidHistory() {
+        // Instantiate command
+        $command = new Command();
+
+        // Instiantiate file system
+        $root = vfsStream::setup('test')->url();
+        $existingFile = $root.'/existingFile';
+        $missingFile = $root.'/missingFile';
+        touch($existingFile);
+
+        // Valid history
+        $this->assertNull($command->history(null));
+        $this->assertEquals($existingFile, $command->history($existingFile));
+        $this->assertEquals($missingFile, $command->history($missingFile));
     }
 
 }
