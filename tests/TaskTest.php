@@ -11,11 +11,11 @@ class TaskTest extends PHPUnit_Framework_TestCase
 
     /**
      * Mock History class and stub has() & put() methods
-     * @param  mixed $has Value returned by has() method, null to not stub has() method.
-     * @param  mixed $put Value returned by put() method, null to not stub put() method.
+     * @param  mixed $has Value returned by has() method, null for no call to has() method.
+     * @param  mixed $put Value returned by put() method, null for no call to put() method.
      * @return object Mocked history
      */
-    private function mockHistory($has, $put = null) {
+    private function mockHistory($has, $put) {
         $methods = [
             'has' => $has,
             'put' => $put,
@@ -32,6 +32,33 @@ class TaskTest extends PHPUnit_Framework_TestCase
         return $history;
     }
 
+    /**
+     * Mock Task class for downloadOnePhoto() method tests
+     * @param  mixed $has Value returned by History::has() method, null for no call to History::has() method.
+     * @param  mixed $put Value returned by History::put() method, null for no call to History::put() method.
+     * @param  string $notificationStatus Status to pass to notify() method
+     * @param  mixed $copyFile Value returned by copyFile() method, null for no call to History::copyFile() method.
+     * @return object Mocked task
+     */
+    private function mockTaskForDownloadOnePhoto($hasHistory, $putHistory, $notificationStatus, $copyFile) {
+        $task = $this->getMock(
+            'Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'notify', 'copyFile'], [], '', false
+        );
+
+        $task->expects($this->once())->method('getHistoryInstance')->willReturn($this->mockHistory($hasHistory, $putHistory));
+
+        $task->expects($this->exactly(2))->method('notify')->withConsecutive(
+            [$this->stringContains('http://example.com'), $this->identicalTo(null)],
+            [$this->anything(), $this->identicalTo($notificationStatus)]
+        );
+
+        $task->expects(is_null($copyFile) ? $this->never() : $this->once())
+            ->method('copyFile')
+            ->with($this->identicalTo('http://example.com'), $this->identicalTo('destination/1.jpg'))
+            ->willReturn($copyFile);
+
+        return $task;
+    }
 
     /**
      * Test Simondubois\UnsplashDownloader\Task::getNotificationCallback()
@@ -307,12 +334,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
      */
     public function testDownloadOnePhotoInHistory() {
         // Initiate task
-        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'notify'], [], '', false);
-        $task->expects($this->once())->method('getHistoryInstance')->willReturn($this->mockHistory(true));
-        $task->expects($this->exactly(2))->method('notify')->withConsecutive(
-            [$this->stringContains('http://example.com'), $this->identicalTo(null)],
-            [$this->anything(), $this->identicalTo(Task::NOTIFY_COMMENT)]
-        );
+        $task = $this->mockTaskForDownloadOnePhoto(true, null, Task::NOTIFY_COMMENT, null);
 
         // Assert download photo in history
         $photo = new Photo([
@@ -325,20 +347,9 @@ class TaskTest extends PHPUnit_Framework_TestCase
     /**
      * Test Simondubois\UnsplashDownloader\Task::downloadOnePhoto()
      */
-    public function testDownloadOnePhotoFailed() {
+    public function testFailedDownloadOnePhoto() {
         // Initiate task
-        $task = $this->getMock(
-            'Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'notify', 'copyFile'], [], '', false
-        );
-        $task->expects($this->once())->method('getHistoryInstance')->willReturn($this->mockHistory(false));
-        $task->expects($this->exactly(2))->method('notify')->withConsecutive(
-            [$this->stringContains('http://example.com'), $this->identicalTo(null)],
-            [$this->anything(), $this->identicalTo(Task::NOTIFY_ERROR)]
-        );
-        $task->expects($this->once())
-            ->method('copyFile')
-            ->with($this->identicalTo('http://example.com'), $this->identicalTo('destination/1.jpg'))
-            ->willReturn(false);
+        $task = $this->mockTaskForDownloadOnePhoto(false, null, Task::NOTIFY_ERROR, false);
 
         // Assert failed download
         $photo = new Photo([
@@ -354,18 +365,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
      */
     public function testSuccessfulDownloadOnePhoto() {
         // Initiate task
-        $task = $this->getMock(
-            'Simondubois\UnsplashDownloader\Task', ['getHistoryInstance', 'notify', 'copyFile'], [], '', false
-        );
-        $task->expects($this->once())->method('getHistoryInstance')->willReturn($this->mockHistory(false, true));
-        $task->expects($this->exactly(2))->method('notify')->withConsecutive(
-            [$this->stringContains('http://example.com'), $this->identicalTo(null)],
-            [$this->anything(), $this->identicalTo(Task::NOTIFY_INFO)]
-        );
-        $task->expects($this->once())
-            ->method('copyFile')
-            ->with($this->identicalTo('http://example.com'), $this->identicalTo('destination/1.jpg'))
-            ->willReturn(true);
+        $task = $this->mockTaskForDownloadOnePhoto(false, true, Task::NOTIFY_INFO, true);
 
         // Assert successful download
         $photo = new Photo([
