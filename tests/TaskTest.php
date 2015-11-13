@@ -50,13 +50,13 @@ class TaskTest extends PHPUnit_Framework_TestCase
             ->willReturn($this->mockHistory($hasHistory, $putHistory));
 
         $task->expects($this->exactly(2))->method('notify')->withConsecutive(
-            [$this->stringContains('http://example.com'), $this->identicalTo(null)],
+            [$this->stringContains('http://www.example.com'), $this->identicalTo(null)],
             [$this->anything(), $this->identicalTo($notificationStatus)]
         );
 
         $task->expects(is_null($copyFile) ? $this->never() : $this->once())
             ->method('copyFile')
-            ->with($this->identicalTo('http://example.com'), $this->identicalTo('destination/1.jpg'))
+            ->with($this->identicalTo('http://www.example.com'), $this->identicalTo('destination/0123456789.jpg'))
             ->willReturn($copyFile);
 
         return $task;
@@ -286,7 +286,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
     public function testGetPhotos() {
         // Prepare data
         $quantity = 10;
-        $photos = new ArrayObject(array_fill(0, $quantity, 'photo'), []);
+        $photos = ['0123456789' => 'http://www.example.com'];
 
         // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['notify']);
@@ -313,17 +313,25 @@ class TaskTest extends PHPUnit_Framework_TestCase
     public function testFailedDownloadAllPhotos() {
         // Prepare data
         $quantity = 10;
-        $photo = new Photo([
-            'id' => 1,
-            'links' => ['download' => 'http://example.com']
-        ]);
-        $photos = new ArrayObject(array_fill(0, $quantity, $photo), []);
+        $photoSource = 'http://www.example.com';
+        $photos = array_fill(0, $quantity, $photoSource);
 
         // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['downloadOnePhoto']);
         $task->expects($this->exactly($quantity))
             ->method('downloadOnePhoto')
-            ->with($this->identicalTo($photo))
+            ->withConsecutive(
+                [$this->identicalTo(0), $this->identicalTo($photoSource)],
+                [$this->identicalTo(1), $this->identicalTo($photoSource)],
+                [$this->identicalTo(2), $this->identicalTo($photoSource)],
+                [$this->identicalTo(3), $this->identicalTo($photoSource)],
+                [$this->identicalTo(4), $this->identicalTo($photoSource)],
+                [$this->identicalTo(5), $this->identicalTo($photoSource)],
+                [$this->identicalTo(6), $this->identicalTo($photoSource)],
+                [$this->identicalTo(7), $this->identicalTo($photoSource)],
+                [$this->identicalTo(8), $this->identicalTo($photoSource)],
+                [$this->identicalTo(9), $this->identicalTo($photoSource)]
+            )
             ->willReturn(false);
         $task->setQuantity($quantity);
 
@@ -337,17 +345,25 @@ class TaskTest extends PHPUnit_Framework_TestCase
     public function testSuccessfulDownloadAllPhotos() {
         // Prepare data
         $quantity = 10;
-        $photo = new Photo([
-            'id' => 1,
-            'links' => ['download' => 'http://example.com']
-        ]);
-        $photos = new ArrayObject(array_fill(0, $quantity, $photo), []);
+        $photoSource = 'http://www.example.com';
+        $photos = array_fill(0, $quantity, $photoSource);
 
         // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['downloadOnePhoto']);
         $task->expects($this->exactly($quantity))
             ->method('downloadOnePhoto')
-            ->with($this->identicalTo($photo))
+            ->withConsecutive(
+                [$this->identicalTo(0), $this->identicalTo($photoSource)],
+                [$this->identicalTo(1), $this->identicalTo($photoSource)],
+                [$this->identicalTo(2), $this->identicalTo($photoSource)],
+                [$this->identicalTo(3), $this->identicalTo($photoSource)],
+                [$this->identicalTo(4), $this->identicalTo($photoSource)],
+                [$this->identicalTo(5), $this->identicalTo($photoSource)],
+                [$this->identicalTo(6), $this->identicalTo($photoSource)],
+                [$this->identicalTo(7), $this->identicalTo($photoSource)],
+                [$this->identicalTo(8), $this->identicalTo($photoSource)],
+                [$this->identicalTo(9), $this->identicalTo($photoSource)]
+            )
             ->willReturn(true);
         $task->setQuantity($quantity);
 
@@ -363,12 +379,8 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $task = $this->mockTaskForDownloadOnePhoto(true, null, Task::NOTIFY_COMMENT, null);
 
         // Assert download photo in history
-        $photo = new Photo([
-            'id' => 1,
-            'links' => ['download' => 'http://example.com']
-        ]);
         $task->__construct();
-        $this->assertEquals(true, $task->downloadOnePhoto($photo));
+        $this->assertEquals(true, $task->downloadOnePhoto('0123456789', 'http://www.example.com'));
     }
     /**
      * Test Simondubois\UnsplashDownloader\Task::downloadOnePhoto()
@@ -378,13 +390,9 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $task = $this->mockTaskForDownloadOnePhoto(false, null, Task::NOTIFY_ERROR, false);
 
         // Assert failed download
-        $photo = new Photo([
-            'id' => 1,
-            'links' => ['download' => 'http://example.com']
-        ]);
         $task->__construct();
         $task->setDestination('destination');
-        $this->assertEquals(false, $task->downloadOnePhoto($photo));
+        $this->assertEquals(false, $task->downloadOnePhoto('0123456789', 'http://www.example.com'));
     }
     /**
      * Test Simondubois\UnsplashDownloader\Task::downloadOnePhoto()
@@ -394,12 +402,8 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $task = $this->mockTaskForDownloadOnePhoto(false, true, Task::NOTIFY_INFO, true);
 
         // Assert successful download
-        $photo = new Photo([
-            'id' => 1,
-            'links' => ['download' => 'http://example.com']
-        ]);
         $task->__construct();
         $task->setDestination('destination');
-        $this->assertEquals(true, $task->downloadOnePhoto($photo));
+        $this->assertEquals(true, $task->downloadOnePhoto('0123456789', 'http://www.example.com'));
     }
 }

@@ -1,6 +1,5 @@
 <?php namespace Simondubois\UnsplashDownloader;
 
-use Crew\Unsplash\ArrayObject;
 use Crew\Unsplash\Photo;
 
 /**
@@ -272,7 +271,7 @@ class Task
     /**
      * Request APi to get photos to downloads
      * @param Unsplash $unsplash Proxy to Unsplash API
-     * @return ArrayObject Photos to download
+     * @return array<string, string> Photos to download
      */
     public function getPhotos(Unsplash $unsplash) {
         $this->notify('Get photo list from unsplash... ');
@@ -284,15 +283,15 @@ class Task
 
     /**
      * Download all photos
-     * @param ArrayObject $photos Photos to download
+     * @param array<string, string> $photos Photos to download
      * @return boolean True if all downloads are successful
      */
-    public function downloadAllPhotos(ArrayObject $photos)
+    public function downloadAllPhotos($photos)
     {
         $success = true;
 
-        foreach ($photos as $photo) {
-            if ($this->downloadOnePhoto($photo) === false) {
+        foreach ($photos as $id => $source) {
+            if ($this->downloadOnePhoto($id, $source) === false) {
                 $success = false;
             }
         }
@@ -302,15 +301,15 @@ class Task
 
     /**
      * Download one photo
-     * @param  Photo $photo Photo instance
+     * @param  string $id Photo id
+     * @param  string $source Photo downlaod url
      */
-    public function downloadOnePhoto(Photo $photo)
+    public function downloadOnePhoto($id, $source)
     {
-        $source      = $photo->links['download'];
-        $destination = $this->destination.'/'.$photo->id.'.jpg';
+        $destination = $this->destination.'/'.$id.'.jpg';
         $this->notify('Download photo from '.$source.' to '.$destination.'... ');
 
-        if ($this->history->has($photo->id)) {
+        if ($this->history->has($id)) {
             $this->notify('ignored (in history).'.PHP_EOL, self::NOTIFY_COMMENT);
             return true;
         }
@@ -322,7 +321,7 @@ class Task
             return false;
         }
 
-        $this->history->put($photo->id);
+        $this->history->put($id);
 
         $this->notify('success.'.PHP_EOL, self::NOTIFY_INFO);
         return true;

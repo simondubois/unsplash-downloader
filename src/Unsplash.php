@@ -58,6 +58,12 @@ class Unsplash
      */
     public function allPhotos($quantity)
     {
-        return Photo::all($quantity);
+        $photos = [];
+
+        foreach (Photo::all($quantity) as $photo) {
+            $photos[$photo->id] = $photo->links['download'];
+        };
+
+        return $photos;
     }
 }
