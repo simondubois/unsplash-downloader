@@ -213,8 +213,8 @@ class Command extends SymfonyCommand
             throw new Exception(
                 'The credentials file has not been found.'.PHP_EOL
                     .'Please create the file '.$this->apiCrendentialsPath.' with the following content :'.PHP_EOL
-                    .'applicationId = your-application-id'.PHP_EOL
-                    .'secret = your-secret'.PHP_EOL
+                    .'applicationId = "your-application-id"'.PHP_EOL
+                    .'secret = "your-secret"'.PHP_EOL
                     .'Register to https://unsplash.com/developers to get your gredentials.',
                 static::ERROR_NO_CREDENTIALS
             );

@@ -20,8 +20,8 @@ Dependency : PHP 5.6 or hhvm or nightly.
 
 To use Unsplash API (and thus this CLI), you have to get an application ID and secret from https://unsplash.com/developers. Then, create a file ``unsplash.ini`` in your working directory with the following content :
 
-	applicationId = your-application-id
-	secret = your-secret
+	applicationId = "your-application-id"
+	secret = "your-secret"
 
 ### Options
 	--destination DESTINATION

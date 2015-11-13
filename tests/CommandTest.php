@@ -219,7 +219,7 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $command = new Command();
         $command->output = new BufferedOutput();
         $command->apiCrendentialsPath = vfsStream::setup('test')->url().'/unsplash.ini';
-        $credentials = 'applicationId = your-application-id'.PHP_EOL.'secret = your-secret'.PHP_EOL;
+        $credentials = 'applicationId = "your-application-id"'.PHP_EOL.'secret = "your-secret"'.PHP_EOL;
         file_put_contents($command->apiCrendentialsPath, $credentials);
 
         // Instantiate task
