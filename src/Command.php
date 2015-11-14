@@ -1,7 +1,5 @@
 <?php namespace Simondubois\UnsplashDownloader;
 
-use InvalidArgumentException;
-use Exception;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;

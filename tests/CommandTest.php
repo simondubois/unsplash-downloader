@@ -225,18 +225,14 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $command->output = new BufferedOutput();
         $command->apiCrendentialsPath = vfsStream::setup('test')->url().'/unsplash.ini';
 
-        // Validation
         $validate = $this->getMock('Simondubois\UnsplashDownloader\Validate', ['apiCredentials']);
-        $validate->expects($this->once())
-            ->method('apiCredentials')
+        $validate->expects($this->once())->method('apiCredentials')
             ->with($this->identicalTo(false), $this->identicalTo($command->apiCrendentialsPath))
             ->will($this->throwException(new InvalidArgumentException('', Validate::ERROR_NO_CREDENTIALS)));
 
-        // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['setCredentials']);
         $task->expects($this->never())->method('setCredentials');
 
-        // Assert no credentials
         $exceptionCode = null;
         try {
             $command->loadApiCredentials($validate, $task);
@@ -250,24 +246,19 @@ class CommandTest extends PHPUnit_Framework_TestCase
      * Test Simondubois\UnsplashDownloader\Command::loadApiCredentials()
      */
     public function testIncorrectCredentialsApiCredentials() {
-        // Instantiate command
         $command = new Command();
         $command->output = new BufferedOutput();
         $command->apiCrendentialsPath = vfsStream::setup('test')->url().'/unsplash.ini';
         touch($command->apiCrendentialsPath);
 
-        // Validation
         $validate = $this->getMock('Simondubois\UnsplashDownloader\Validate', ['apiCredentials']);
-        $validate->expects($this->once())
-            ->method('apiCredentials')
+        $validate->expects($this->once())->method('apiCredentials')
             ->with($this->identicalTo([]), $this->identicalTo($command->apiCrendentialsPath))
             ->will($this->throwException(new InvalidArgumentException('', Validate::ERROR_INCORRECT_CREDENTIALS)));
 
-        // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['setCredentials']);
         $task->expects($this->never())->method('setCredentials');
 
-        // Assert incorrect credentials
         $exceptionCode = null;
         try {
             $command->loadApiCredentials($validate, $task);
@@ -282,7 +273,6 @@ class CommandTest extends PHPUnit_Framework_TestCase
      * Test Simondubois\UnsplashDownloader\Command::loadApiCredentials()
      */
     public function testSuccessfulApiCredentials() {
-        // Instantiate command
         $command = new Command();
         $command->output = new BufferedOutput();
         $command->apiCrendentialsPath = vfsStream::setup('test')->url().'/unsplash.ini';
@@ -290,20 +280,16 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $credentialsString = 'applicationId = "your-application-id"'.PHP_EOL.'secret = "your-secret"'.PHP_EOL;
         file_put_contents($command->apiCrendentialsPath, $credentialsString);
 
-        // Validation
         $validate = $this->getMock('Simondubois\UnsplashDownloader\Validate', ['apiCredentials']);
-        $validate->expects($this->once())
-            ->method('apiCredentials')
+        $validate->expects($this->once())->method('apiCredentials')
             ->with($this->identicalTo($credentialsArray), $this->identicalTo($command->apiCrendentialsPath))
             ->willReturn($credentialsArray);
 
-        // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['setCredentials']);
         $task->expects($this->once())
             ->method('setCredentials')
             ->with($credentialsArray['applicationId'], $credentialsArray['secret']);
 
-        // Assert successful credentials
         $command->loadApiCredentials($validate, $task);
     }
 
