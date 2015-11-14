@@ -62,6 +62,16 @@ class TaskTest extends PHPUnit_Framework_TestCase
         return $task;
     }
 
+    public function mockUnsplashForGetPhotos() {
+        $unsplash = $this->getMock(
+            'Simondubois\UnsplashDownloader\Unsplash',
+            ['allPhotos', 'photosInCategory', 'featuredPhotos'],
+            ['', '']
+        );
+
+        return $unsplash;
+    }
+
     /**
      * Test Simondubois\UnsplashDownloader\Task::getNotificationCallback()
      *     & Simondubois\UnsplashDownloader\Task::setNotificationCallback()
@@ -339,9 +349,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $photos = ['0123456789' => 'http://www.example.com'];
 
         // Instantiate proxy
-        $unsplash = $this->getMock(
-            'Simondubois\UnsplashDownloader\Unsplash', ['allPhotos', 'photosInCategory', 'featuredPhotos'], ['', '']
-        );
+        $unsplash = $this->mockUnsplashForGetPhotos();
         $unsplash->expects($this->once())
             ->method('allPhotos')
             ->with($this->identicalTo($quantity))
@@ -368,9 +376,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $category = 1;
 
         // Instantiate proxy
-        $unsplash = $this->getMock(
-            'Simondubois\UnsplashDownloader\Unsplash', ['allPhotos', 'photosInCategory', 'featuredPhotos'], ['', '']
-        );
+        $unsplash = $this->mockUnsplashForGetPhotos();
         $unsplash->expects($this->never())->method('allPhotos');
         $unsplash->expects($this->once())
             ->method('photosInCategory')
@@ -397,9 +403,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $photos = ['0123456789' => 'http://www.example.com'];
 
         // Instantiate proxy
-        $unsplash = $this->getMock(
-            'Simondubois\UnsplashDownloader\Unsplash', ['allPhotos', 'photosInCategory', 'featuredPhotos'], ['', '']
-        );
+        $unsplash = $this->mockUnsplashForGetPhotos();
         $unsplash->expects($this->never())->method('allPhotos');
         $unsplash->expects($this->never())->method('photosInCategory');
         $unsplash->expects($this->once())->method('featuredPhotos')

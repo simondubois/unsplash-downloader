@@ -201,8 +201,8 @@ class Validate {
 
     /**
      * Check validity of the category parameter
-     * @param  string $value Parameter value
-     * @return string Validated and formatted category value
+     * @param  string|null $value Parameter value
+     * @return int|null Validated and formatted category value
      */
     public function category($value)
     {

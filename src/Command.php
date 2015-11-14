@@ -125,13 +125,15 @@ class Command extends SymfonyCommand
                 Then any further download is going to ignore photos that have their ID in the history.
                 Usefull to delete unwanted pictures and prevent the CLI to download them again.'
         );
-        $this->addOption('featured', null, InputOption::VALUE_NONE, 'Download only featured photos (incompatible with --category option).');
+        $this->addOption(
+            'featured', null, InputOption::VALUE_NONE, 'Download only featured photos (incompatible with --category).'
+        );
         $this->addOption('categories', null, InputOption::VALUE_NONE, 'Print out categories and quit (no download).');
         $this->addOption(
             'category',
             null,
             InputOption::VALUE_REQUIRED,
-            'Only download photos for the given category ID (incompatible with the --featured option).'
+            'Only download photos for the given category ID (incompatible with the --featured).'
         );
     }
 
@@ -210,13 +212,12 @@ class Command extends SymfonyCommand
 
         $history = $validate->history($options['history']);
         $task->setHistory($history);
-        $message = is_string($history) ? 'Use '.$history.' as history.' : 'Do not use history.';
-        $this->verboseOutput($message.PHP_EOL);
+        $this->verboseOutput((is_null($history) ? 'Do not use history.' : 'Use '.$history.' as history.').PHP_EOL);
 
         $task->setFeatured($options['featured']);
-        $message = $options['featured'] ?
-            'Download only featured photos.' : 'Download featured and not featured photos.';
-        $this->verboseOutput($message.PHP_EOL);
+        $this->verboseOutput(($options['featured'] ?
+            'Download only featured photos.' : 'Download featured and not featured photos.'
+        ).PHP_EOL);
 
         $category = $validate->category($options['category']);
         $task->setCategory($category);

@@ -71,7 +71,7 @@ class Unsplash
     /**
      * Request APi to get last photos in category
      * @param  int $quantity Number of photos to return
-     * @param  int $categoy Category ID
+     * @param  integer $category Category ID
      * @return string[] Photo download links indexed by IDs
      */
     public function photosInCategory($quantity, $category)
