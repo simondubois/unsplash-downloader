@@ -16,9 +16,17 @@ class Command extends SymfonyCommand
 {
 
     //
-    // Attributes
+    // Constants & Attributes
     //
-
+    const DESCRIPTION_DESTINATION = 'Directory where to download photos.';
+    const DESCRIPTION_QUANTITY = 'Number of photos to download.';
+    const DESCRIPTION_HISTORY = 'Filename to use as download history.
+                When photos are downloaded, their IDs will be stored into the file.
+                Then any further download is going to ignore photos that have their ID in the history.
+                Usefull to delete unwanted pictures and prevent the CLI to download them again.';
+    const DESCRIPTION_FEATURED = 'Download only featured photos (incompatible with --category).';
+    const DESCRIPTION_CATEGORIES = 'Print out categories and quit (no download).';
+    const DESCRIPTION_CATEGORY = 'Only download photos for the given category ID (incompatible with the --featured).';
     /**
      * Output instance.
      * Stored to simplify method calls and to be used in callbacks.
@@ -112,29 +120,12 @@ class Command extends SymfonyCommand
      */
     private function configureOptions()
     {
-        $this->addOption(
-            'destination', null, InputOption::VALUE_REQUIRED, 'Directory where to download photos.', getcwd()
-        );
-        $this->addOption('quantity', null, InputOption::VALUE_REQUIRED, 'Number of photos to download.', '10');
-        $this->addOption(
-            'history',
-            null,
-            InputOption::VALUE_REQUIRED,
-            'Filename to use as download history.
-                When photos are downloaded, their IDs will be stored into the file.
-                Then any further download is going to ignore photos that have their ID in the history.
-                Usefull to delete unwanted pictures and prevent the CLI to download them again.'
-        );
-        $this->addOption(
-            'featured', null, InputOption::VALUE_NONE, 'Download only featured photos (incompatible with --category).'
-        );
-        $this->addOption('categories', null, InputOption::VALUE_NONE, 'Print out categories and quit (no download).');
-        $this->addOption(
-            'category',
-            null,
-            InputOption::VALUE_REQUIRED,
-            'Only download photos for the given category ID (incompatible with the --featured).'
-        );
+        $this->addOption('destination', null, InputOption::VALUE_REQUIRED, self::DESCRIPTION_DESTINATION, getcwd());
+        $this->addOption('quantity', null, InputOption::VALUE_REQUIRED, self::DESCRIPTION_QUANTITY, '10');
+        $this->addOption('history', null, InputOption::VALUE_REQUIRED, self::DESCRIPTION_HISTORY);
+        $this->addOption('featured', null, InputOption::VALUE_NONE, self::DESCRIPTION_FEATURED);
+        $this->addOption('categories', null, InputOption::VALUE_NONE, self::DESCRIPTION_CATEGORIES);
+        $this->addOption('category', null, InputOption::VALUE_REQUIRED, self::DESCRIPTION_CATEGORY);
     }
 
 
@@ -202,27 +193,94 @@ class Command extends SymfonyCommand
      */
     public function parameters(Validate $validate, Task $task, $options)
     {
-        $destination = $validate->destination($options['destination']);
+        $this->destinationParameter($validate, $task, $options['destination']);
+        $this->quantityParameter($validate, $task, $options['quantity']);
+        $this->historyParameter($validate, $task, $options['history']);
+        $this->featuredParameter($validate, $task, $options['featured']);
+        $this->categoryParameter($validate, $task, $options['category']);
+    }
+
+    /**
+     * Check & validate the destination parameter
+     * @param  Validate $validate Validate instance
+     * @param  Task $task Download task
+     * @param  string $option Option value
+     */
+    public function destinationParameter(Validate $validate, Task $task, $option)
+    {
+        $destination = $validate->destination($option);
+
         $task->setDestination($destination);
+
         $this->verboseOutput('Download photos to '.$destination.'.'.PHP_EOL);
+    }
 
-        $quantity = $validate->quantity($options['quantity']);
+    /**
+     * Check & validate the quantity parameter
+     * @param  Validate $validate Validate instance
+     * @param  Task $task Download task
+     * @param  string $option Option value
+     */
+    public function quantityParameter(Validate $validate, Task $task, $option)
+    {
+        $quantity = $validate->quantity($option);
+
         $task->setQuantity($quantity);
+
         $this->verboseOutput('Download the last '.$quantity.' photos.'.PHP_EOL);
+    }
 
-        $history = $validate->history($options['history']);
+    /**
+     * Check & validate the history parameter
+     * @param  Validate $validate Validate instance
+     * @param  Task $task Download task
+     * @param  string $option Option value
+     */
+    public function historyParameter(Validate $validate, Task $task, $option)
+    {
+        $history = $validate->history($option);
+
         $task->setHistory($history);
-        $this->verboseOutput((is_null($history) ? 'Do not use history.' : 'Use '.$history.' as history.').PHP_EOL);
 
-        $task->setFeatured($options['featured']);
-        $this->verboseOutput(($options['featured'] ?
-            'Download only featured photos.' : 'Download featured and not featured photos.'
-        ).PHP_EOL);
+        if (is_null($history)) {
+            $this->verboseOutput('Do not use history.'.PHP_EOL);
+            return;
+        }
 
-        $category = $validate->category($options['category']);
+        $this->verboseOutput('Use '.$history.' as history.'.PHP_EOL);
+    }
+
+    /**
+     * Check & validate the featured parameter
+     * @param  Validate $validate Validate instance
+     * @param  Task $task Download task
+     * @param  string $option Option value
+     */
+    public function featuredParameter(Validate $validate, Task $task, $option)
+    {
+        $task->setFeatured($option);
+
+        if ($option === true) {
+            $this->verboseOutput('Download only featured photos.');
+        }
+
+        $this->verboseOutput('Download featured and not featured photos.');
+    }
+
+    /**
+     * Check & validate the category parameter
+     * @param  Validate $validate Validate instance
+     * @param  Task $task Download task
+     * @param  string $option Option value
+     */
+    public function categoryParameter(Validate $validate, Task $task, $option)
+    {
+        $category = $validate->category($option);
+
         $task->setCategory($category);
-        if (is_int($category) && $options['featured'] === false) {
-            $this->verboseOutput('Download only photos for category ID '.$options['category'].'.'.PHP_EOL);
+
+        if (is_int($category) && $task->getFeatured() !== true) {
+            $this->verboseOutput('Download only photos for category ID '.$option.'.'.PHP_EOL);
         }
     }
 

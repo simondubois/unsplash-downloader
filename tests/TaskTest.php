@@ -1,7 +1,6 @@
 <?php namespace Tests;
 
 use Crew\Unsplash\ArrayObject;
-use Crew\Unsplash\Photo;
 use Exception;
 use PHPUnit_Framework_TestCase;
 use Simondubois\UnsplashDownloader\Task;
@@ -34,10 +33,10 @@ class TaskTest extends PHPUnit_Framework_TestCase
 
     /**
      * Mock Task class for downloadOnePhoto() method tests
-     * @param  mixed $hasHistory Value returned by History::has() method, null for no call to History::has() method.
-     * @param  mixed $putHistory Value returned by History::put() method, null for no call to History::put() method.
+     * @param  boolean $hasHistory Value returned by History::has() method, null for no call to History::has() method.
+     * @param  null|bool $putHistory Value returned by History::put() method, null for no call to History::put() method.
      * @param  string $notificationStatus Status to pass to notify() method
-     * @param  mixed $copyFile Value returned by copyFile() method, null for no call to History::copyFile() method.
+     * @param  null|bool $copyFile Value returned by copyFile() method, null for no call to History::copyFile() method.
      * @return object Mocked task
      */
     private function mockTaskForDownloadOnePhoto($hasHistory, $putHistory, $notificationStatus, $copyFile) {
@@ -62,6 +61,10 @@ class TaskTest extends PHPUnit_Framework_TestCase
         return $task;
     }
 
+    /**
+     * Mock Unsplash class for getPhotos() tests
+     * @return object Mocked proxy
+     */
     public function mockUnsplashForGetPhotos() {
         $unsplash = $this->getMock(
             'Simondubois\UnsplashDownloader\Unsplash',
@@ -373,14 +376,13 @@ class TaskTest extends PHPUnit_Framework_TestCase
     public function testGetPhotosInCategory() {
         $quantity = 10;
         $photos = ['0123456789' => 'http://www.example.com'];
-        $category = 1;
 
         // Instantiate proxy
         $unsplash = $this->mockUnsplashForGetPhotos();
         $unsplash->expects($this->never())->method('allPhotos');
         $unsplash->expects($this->once())
             ->method('photosInCategory')
-            ->with($this->identicalTo($quantity), $this->identicalTo($category))
+            ->with($this->identicalTo($quantity), $this->identicalTo(123))
             ->willReturn($photos);
         $unsplash->expects($this->never())->method('featuredPhotos');
 
@@ -391,7 +393,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
             [$this->identicalTo('success.'.PHP_EOL), $this->identicalTo(Task::NOTIFY_INFO)]
         );
         $task->setQuantity($quantity);
-        $task->setCategory($category);
+        $task->setCategory(123);
         $this->assertEquals($photos, $task->getPhotos($unsplash));
     }
 
