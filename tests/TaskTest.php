@@ -318,7 +318,6 @@ class TaskTest extends PHPUnit_Framework_TestCase
      * Test Simondubois\UnsplashDownloader\Task::getPhotos()
      */
     public function testGetAllPhotos() {
-        // Prepare data
         $quantity = 10;
         $photos = ['0123456789' => 'http://www.example.com'];
 
@@ -346,7 +345,6 @@ class TaskTest extends PHPUnit_Framework_TestCase
      * Test Simondubois\UnsplashDownloader\Task::getPhotos()
      */
     public function testGetFeaturedPhotos() {
-        // Prepare data
         $quantity = 10;
         $photos = ['0123456789' => 'http://www.example.com'];
 

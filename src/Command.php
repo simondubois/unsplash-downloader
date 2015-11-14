@@ -130,9 +130,7 @@ class Command extends SymfonyCommand
         $this->addOption(
             'destination', null, InputOption::VALUE_REQUIRED, 'Directory where to download photos.', getcwd()
         );
-        $this->addOption(
-            'quantity', null, InputOption::VALUE_REQUIRED, 'Number of photos to download.', '10'
-        );
+        $this->addOption('quantity', null, InputOption::VALUE_REQUIRED, 'Number of photos to download.', '10');
         $this->addOption(
             'history',
             null,
@@ -144,10 +142,7 @@ class Command extends SymfonyCommand
         );
         $this->addOption('featured', null, InputOption::VALUE_NONE, 'Download only featured photos.');
         $this->addOption(
-            'categories',
-            null,
-            InputOption::VALUE_NONE,
-            'List categories and quit (no download will be performed).'
+            'categories', null, InputOption::VALUE_NONE, 'Print out categories and quit (no download will be performed).'
         );
     }
 
@@ -212,9 +207,8 @@ class Command extends SymfonyCommand
             $this->verboseOutput('Do not use history.'.PHP_EOL);
         }
 
-        $featured = $options['featured'];
-        $task->setFeatured($featured);
-        if ($featured) {
+        $task->setFeatured($options['featured']);
+        if ($options['featured']) {
             $this->verboseOutput('Download only featured photos.'.PHP_EOL);
         } else {
             $this->verboseOutput('Download featured and not featured photos.'.PHP_EOL);
