@@ -9,7 +9,11 @@ CLI to download photos from unsplash.com
 
 
 ## Usage
+
+Download photos :
+
 	unsplash-downloader [--destination DESTINATION] [--quantity QUANTITY] [--history HISTORY] [--featured]
+	unsplash-downloader [--categories]
 
 ### Executable
 The executable is located into the build directory.
@@ -26,19 +30,24 @@ To use Unsplash API (and thus this CLI), you have to get an application ID and s
 ### Options
 	--destination DESTINATION
 Directory where to download photos.
-*Default: current working directory.*
+*Default: current working directory*
 
       --quantity QUANTITY
 Number of photos to download.
-*Default: 10.*
+*Default: 10*
 
       --history HISTORY
 Filename to use as download history. When photos are downloaded, their IDs will be stored into the file. Then any further download is going to ignore photos that have their ID in the history. Usefull to delete unwanted pictures and prevent the CLI to download them again.
-*Default: none.*
+*Default: none*
 
       --featured
-Download only featured photos
-*Default: false.*
+Download only featured photos.
+*Default: false*
+
+
+      --categories
+List categories and quit (no download will be performed).
+*Default: false*
 
 -----
 
