@@ -6,12 +6,33 @@ use org\bovigo\vfs\vfsStream;
 use PHPUnit_Framework_TestCase;
 use Simondubois\UnsplashDownloader\Command;
 use Simondubois\UnsplashDownloader\Task;
+use Simondubois\UnsplashDownloader\Validate;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class CommandTest extends PHPUnit_Framework_TestCase
 {
+
+    /**
+     * Mock Validate class
+     * @param  array $options Options to be validated
+     * @return object Mocked validate
+     */
+    private function mockValidate($options) {
+        $validate = $this->getMock('Simondubois\UnsplashDownloader\Validate', array_keys($options));
+
+        unset($options['featured']);
+
+        foreach ($options as $key => $value) {
+            $validate->expects($this->once())
+                ->method($key)
+                ->with($this->identicalTo($value))
+                ->willReturn($key === 'quantity' ? intval($value) : $value);
+        }
+
+        return $validate;
+    }
 
     /**
      * Test Simondubois\UnsplashDownloader\Command::verboseOutput()
@@ -80,7 +101,8 @@ class CommandTest extends PHPUnit_Framework_TestCase
             ['task', 'loadApiCredentials', 'parameters']
         );
         $command->expects($this->once())->method('task')->willReturn($task);
-        $command->expects($this->once())->method('loadApiCredentials');
+        $command->expects($this->once())->method('loadApiCredentials')
+            ->with($this->equalTo(new Validate()), $this->identicalTo($task));
         $command->expects($this->never())->method('parameters');
 
         // Execute command
@@ -104,8 +126,10 @@ class CommandTest extends PHPUnit_Framework_TestCase
             ['task', 'loadApiCredentials', 'parameters']
         );
         $command->expects($this->once())->method('task')->willReturn($task);
-        $command->expects($this->once())->method('loadApiCredentials')->with($this->identicalTo($task));
-        $command->expects($this->once())->method('parameters')->with($this->identicalTo($task), $this->anything());
+        $command->expects($this->once())->method('loadApiCredentials')
+            ->with($this->equalTo(new Validate()), $this->identicalTo($task));
+        $command->expects($this->once())->method('parameters')
+            ->with($this->equalTo(new Validate()), $this->identicalTo($task), $this->anything());
 
         // Execute command
         $input = new ArrayInput([], $command->getDefinition());
@@ -156,7 +180,7 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $task->expects($this->once())->method('setQuantity')->with($this->identicalTo(10));
         $task->expects($this->once())->method('setHistory')->with($this->identicalTo($history));
         $task->expects($this->once())->method('setFeatured')->with($this->identicalTo(false));
-        $command->parameters($task, $options);
+        $command->parameters($this->mockValidate($options), $task, $options);
 
         // Assert output content (with history)
         $output = $command->output->fetch();
@@ -182,9 +206,9 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $task->expects($this->once())->method('setQuantity')->with($this->identicalTo(10));
         $task->expects($this->once())->method('setHistory')->with($this->identicalTo(null));
         $task->expects($this->once())->method('setFeatured')->with($this->identicalTo(true));
+        $command->parameters($this->mockValidate($options), $task, $options);
 
         // Assert output content (without history)
-        $command->parameters($task, $options);
         $output = $command->output->fetch();
         $this->assertContains($options['destination'], $output);
         $this->assertContains($options['quantity'], $output);
@@ -194,7 +218,6 @@ class CommandTest extends PHPUnit_Framework_TestCase
 
     /**
      * Test Simondubois\UnsplashDownloader\Command::loadApiCredentials()
-     *     & Simondubois\UnsplashDownloader\Command::validApiCredentials()
      */
     public function testNoCredentialsApiCredentials() {
         // Instantiate command
@@ -202,22 +225,29 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $command->output = new BufferedOutput();
         $command->apiCrendentialsPath = vfsStream::setup('test')->url().'/unsplash.ini';
 
+        // Validation
+        $validate = $this->getMock('Simondubois\UnsplashDownloader\Validate', ['apiCredentials']);
+        $validate->expects($this->once())
+            ->method('apiCredentials')
+            ->with($this->identicalTo(false), $this->identicalTo($command->apiCrendentialsPath))
+            ->will($this->throwException(new InvalidArgumentException('', Validate::ERROR_NO_CREDENTIALS)));
+
         // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['setCredentials']);
         $task->expects($this->never())->method('setCredentials');
+
         // Assert no credentials
         $exceptionCode = null;
         try {
-            $command->loadApiCredentials($task);
+            $command->loadApiCredentials($validate, $task);
         } catch (Exception $exception) {
             $exceptionCode = $exception->getCode();
         }
-        $this->assertEquals(Command::ERROR_NO_CREDENTIALS, $exceptionCode);
+        $this->assertEquals(Validate::ERROR_NO_CREDENTIALS, $exceptionCode);
     }
 
     /**
      * Test Simondubois\UnsplashDownloader\Command::loadApiCredentials()
-     *     & Simondubois\UnsplashDownloader\Command::validApiCredentials()
      */
     public function testIncorrectCredentialsApiCredentials() {
         // Instantiate command
@@ -226,6 +256,13 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $command->apiCrendentialsPath = vfsStream::setup('test')->url().'/unsplash.ini';
         touch($command->apiCrendentialsPath);
 
+        // Validation
+        $validate = $this->getMock('Simondubois\UnsplashDownloader\Validate', ['apiCredentials']);
+        $validate->expects($this->once())
+            ->method('apiCredentials')
+            ->with($this->identicalTo([]), $this->identicalTo($command->apiCrendentialsPath))
+            ->will($this->throwException(new InvalidArgumentException('', Validate::ERROR_INCORRECT_CREDENTIALS)));
+
         // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['setCredentials']);
         $task->expects($this->never())->method('setCredentials');
@@ -233,242 +270,41 @@ class CommandTest extends PHPUnit_Framework_TestCase
         // Assert incorrect credentials
         $exceptionCode = null;
         try {
-            $command->loadApiCredentials($task);
+            $command->loadApiCredentials($validate, $task);
         } catch (Exception $exception) {
             $exceptionCode = $exception->getCode();
         }
-        $this->assertEquals(Command::ERROR_INCORRECT_CREDENTIALS, $exceptionCode);
+        $this->assertEquals(Validate::ERROR_INCORRECT_CREDENTIALS, $exceptionCode);
     }
+
 
     /**
      * Test Simondubois\UnsplashDownloader\Command::loadApiCredentials()
-     *     & Simondubois\UnsplashDownloader\Command::validApiCredentials()
      */
     public function testSuccessfulApiCredentials() {
         // Instantiate command
         $command = new Command();
         $command->output = new BufferedOutput();
         $command->apiCrendentialsPath = vfsStream::setup('test')->url().'/unsplash.ini';
-        $credentials = 'applicationId = "your-application-id"'.PHP_EOL.'secret = "your-secret"'.PHP_EOL;
-        file_put_contents($command->apiCrendentialsPath, $credentials);
+        $credentialsArray = ['applicationId' => 'your-application-id', 'secret' => 'your-secret'];
+        $credentialsString = 'applicationId = "your-application-id"'.PHP_EOL.'secret = "your-secret"'.PHP_EOL;
+        file_put_contents($command->apiCrendentialsPath, $credentialsString);
+
+        // Validation
+        $validate = $this->getMock('Simondubois\UnsplashDownloader\Validate', ['apiCredentials']);
+        $validate->expects($this->once())
+            ->method('apiCredentials')
+            ->with($this->identicalTo($credentialsArray), $this->identicalTo($command->apiCrendentialsPath))
+            ->willReturn($credentialsArray);
 
         // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['setCredentials']);
         $task->expects($this->once())
             ->method('setCredentials')
-            ->with($this->identicalTo('your-application-id'), $this->identicalTo('your-secret'));
+            ->with($credentialsArray['applicationId'], $credentialsArray['secret']);
 
-        // Assert no credentials
-        $command->loadApiCredentials($task);
-    }
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Command::destination()
-     */
-    public function testFileDestination() {
-        // Instantiate command
-        $command = new Command();
-
-        // Instiantiate file system
-        $root = vfsStream::setup('test')->url();
-        $existingFile = $root.'/existingFile';
-        touch($existingFile);
-
-        // Invalid destination : existing file
-        $exceptionCode = null;
-        try {
-            $command->destination($existingFile);
-        } catch (InvalidArgumentException $exception) {
-            $exceptionCode = $exception->getCode();
-        }
-        $this->assertEquals(Command::ERROR_DESTINATION_NOTDIR, $exceptionCode);
-    }
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Command::destination()
-     */
-    public function testMissingFolderDestination() {
-        // Instantiate command
-        $command = new Command();
-
-        // Instiantiate file system
-        $root = vfsStream::setup('test')->url();
-        $missingFolder = $root.'/missingFolder';
-
-        // Invalid destination : missing folder
-        $exceptionCode = null;
-        try {
-            $command->destination($missingFolder);
-        } catch (InvalidArgumentException $exception) {
-            $exceptionCode = $exception->getCode();
-        }
-        $this->assertEquals(Command::ERROR_DESTINATION_NOTDIR, $exceptionCode);
-    }
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Command::destination()
-     */
-    public function testUnwritableDestination() {
-        // Instantiate command
-        $command = new Command();
-
-        // Instiantiate file system
-        $root = vfsStream::setup('test')->url();
-        $unwritableFolder = $root.'/unwritableFolder';
-        mkdir($unwritableFolder, 0000);
-
-        // Asert destination
-        $exceptionCode = null;
-        try {
-            $command->destination($unwritableFolder);
-        } catch (InvalidArgumentException $exception) {
-            $exceptionCode = $exception->getCode();
-        }
-        $this->assertEquals(Command::ERROR_DESTINATION_UNWRITABLE, $exceptionCode);
-    }
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Command::destination()
-     */
-    public function testSuccessfulDestination() {
-        // Instantiate command
-        $command = new Command();
-
-        // Instiantiate file system
-        $root = vfsStream::setup('test')->url();
-        $existingFolder = $root.'/existingFolder';
-        mkdir($existingFolder);
-
-        // Valid destination
-        $this->assertEquals($existingFolder, $command->destination($existingFolder));
-    }
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Command::quantity()
-     */
-    public function testNotNumericQuantity() {
-        // Instantiate command
-        $command = new Command();
-
-        // Invalid quantity : not numeric
-        $exceptionCode = null;
-        try {
-            $command->quantity('abc');
-        } catch (InvalidArgumentException $exception) {
-            $exceptionCode = $exception->getCode();
-        }
-        $this->assertEquals(Command::ERROR_QUANTITY_NOTNUMERIC, $exceptionCode);
-    }
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Command::quantity()
-     */
-    public function testNotPositivQuantity() {
-        // Instantiate command
-        $command = new Command();
-
-        // Invalid quantity : not positive
-        $exceptionCode = null;
-        try {
-            $command->quantity('-1');
-        } catch (InvalidArgumentException $exception) {
-            $exceptionCode = $exception->getCode();
-        }
-        $this->assertEquals(Command::ERROR_QUANTITY_NOTPOSITIVE, $exceptionCode);
-    }
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Command::quantity()
-     */
-    public function testTooHighQuantity() {
-        // Instantiate command
-        $command = new Command();
-
-        // Invalid quantity : too high
-        $exceptionCode = null;
-        try {
-            $command->quantity('101');
-        } catch (InvalidArgumentException $exception) {
-            $exceptionCode = $exception->getCode();
-        }
-        $this->assertEquals(Command::ERROR_QUANTITY_TOOHIGH, $exceptionCode);
-    }
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Command::quantity()
-     */
-    public function testValidQuantity() {
-        // Instantiate command
-        $command = new Command();
-
-        // Valid quantities
-        $this->assertEquals(1, $command->quantity('1'));
-        $this->assertEquals(10, $command->quantity('10'));
-        $this->assertEquals(100, $command->quantity('100'));
-    }
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Command::history()
-     */
-    public function testNotFileHistory() {
-        // Instantiate command
-        $command = new Command();
-
-        // Instiantiate file system
-        $root = vfsStream::setup('test')->url();
-        $existingFolder = $root.'/existingFolder';
-        mkdir($existingFolder);
-
-        // Invalid history : not file
-        $exceptionCode = null;
-        try {
-            $command->history($existingFolder);
-        } catch (InvalidArgumentException $exception) {
-            $exceptionCode = $exception->getCode();
-        }
-        $this->assertEquals(Command::ERROR_HISTORY_NOTFILE, $exceptionCode);
-    }
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Command::history()
-     */
-    public function testUnwritableHistory() {
-        // Instantiate command
-        $command = new Command();
-
-        // Instiantiate file system
-        $root = vfsStream::setup('test')->url();
-        $unwritableFolder = $root.'/unwritableFolder';
-        mkdir($unwritableFolder, 0000);
-        $unwritableFile = $unwritableFolder.'/unwritableFile';
-
-        // Invalid history : not writable
-        $exceptionCode = null;
-        try {
-            $command->history($unwritableFile);
-        } catch (InvalidArgumentException $exception) {
-            $exceptionCode = $exception->getCode();
-        }
-        $this->assertEquals(Command::ERROR_HISTORY_NOTRW, $exceptionCode);
-    }
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Command::history()
-     */
-    public function testValidHistory() {
-        // Instantiate command
-        $command = new Command();
-
-        // Instiantiate file system
-        $root = vfsStream::setup('test')->url();
-        $existingFile = $root.'/existingFile';
-        $missingFile = $root.'/missingFile';
-        touch($existingFile);
-
-        // Valid history
-        $this->assertNull($command->history(null));
-        $this->assertEquals($existingFile, $command->history($existingFile));
-        $this->assertEquals($missingFile, $command->history($missingFile));
+        // Assert successful credentials
+        $command->loadApiCredentials($validate, $task);
     }
 
 }

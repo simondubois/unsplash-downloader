@@ -18,21 +18,8 @@ class Command extends SymfonyCommand
 {
 
     //
-    // Constants & attributes
+    // Attributes
     //
-
-    /**
-     * Error codes
-     */
-    const ERROR_DESTINATION_NOTDIR     = 1;
-    const ERROR_DESTINATION_UNWRITABLE = 2;
-    const ERROR_QUANTITY_NOTNUMERIC    = 3;
-    const ERROR_QUANTITY_NOTPOSITIVE   = 4;
-    const ERROR_QUANTITY_TOOHIGH       = 5;
-    const ERROR_HISTORY_NOTFILE        = 6;
-    const ERROR_HISTORY_NOTRW          = 7;
-    const ERROR_NO_CREDENTIALS         = 8;
-    const ERROR_INCORRECT_CREDENTIALS  = 9;
 
     /**
      * Output instance.
@@ -159,15 +146,17 @@ class Command extends SymfonyCommand
     {
         $this->output = $output;
 
+        $validate = new Validate();
+
         $task = $this->task();
-        $this->loadApiCredentials($task);
+        $this->loadApiCredentials($validate, $task);
 
         if ($input->getOption('categories')) {
             $task->categories();
             return;
         }
 
-        $this->parameters($task, $input->getOptions());
+        $this->parameters($validate, $task, $input->getOptions());
         $task->download();
     }
 
@@ -183,211 +172,47 @@ class Command extends SymfonyCommand
     }
 
     /**
-     * Check & validate the parameters
+     * Load & validate API credentials
+     * @param  Validate $validate Validate instance
      * @param  Task $task Download task
-     * @param  array $opt Command options
      */
-    public function parameters(Task $task, $opt)
+    public function loadApiCredentials(Validate $validate, Task $task)
     {
-        $destination = $this->destination($opt['destination']);
+        $this->verboseOutput('Load credentials from unsplash.ini :'.PHP_EOL);
+
+        $credentials = @parse_ini_file($this->apiCrendentialsPath);
+        $validate->apiCredentials($credentials, $this->apiCrendentialsPath);
+
+        $task->setCredentials($credentials['applicationId'], $credentials['secret']);
+        $this->verboseOutput("\tApplication ID\t: ".$credentials['applicationId'].PHP_EOL);
+        $this->verboseOutput("\tSecret\t\t: ".$credentials['secret'].PHP_EOL);
+    }
+
+    /**
+     * Check & validate the parameters
+     * @param  Validate $validate Validate instance
+     * @param  Task $task Download task
+     * @param  array $options Command options
+     */
+    public function parameters(Validate $validate, Task $task, $options)
+    {
+        $destination = $validate->destination($options['destination']);
         $task->setDestination($destination);
         $this->verboseOutput('Download photos to '.$destination.'.'.PHP_EOL);
 
-        $quantity = $this->quantity($opt['quantity']);
+        $quantity = $validate->quantity($options['quantity']);
         $task->setQuantity($quantity);
         $this->verboseOutput('Download the last '.$quantity.' photos.'.PHP_EOL);
 
-        $history = $this->history($opt['history']);
+        $history = $validate->history($options['history']);
         $task->setHistory($history);
         $message = is_string($history) ? 'Use '.$history.' as history.' : 'Do not use history.';
         $this->verboseOutput($message.PHP_EOL);
 
-        $task->setFeatured($opt['featured']);
-        $message = $opt['featured'] ? 'Download only featured photos.' : 'Download featured and not featured photos.';
+        $task->setFeatured($options['featured']);
+        $message = $options['featured'] ?
+            'Download only featured photos.' : 'Download featured and not featured photos.';
         $this->verboseOutput($message.PHP_EOL);
     }
 
-    /**
-     * Load API credentials
-     * @param  Task $task Download task
-     */
-    public function loadApiCredentials(Task $task)
-    {
-        $this->verboseOutput('Load credentials from unsplash.ini :'.PHP_EOL);
-        $credentials = @parse_ini_file($this->apiCrendentialsPath);
-
-        if ($credentials === false) {
-            throw new Exception(
-                'The credentials file has not been found.'.PHP_EOL
-                    .'Please create the file '.$this->apiCrendentialsPath.' with the following content :'.PHP_EOL
-                    .'applicationId = "your-application-id"'.PHP_EOL
-                    .'secret = "your-secret"'.PHP_EOL
-                    .'Register to https://unsplash.com/developers to get your gredentials.',
-                static::ERROR_NO_CREDENTIALS
-            );
-        }
-
-        $this->validApiCredentials($task, $credentials);
-    }
-
-    /**
-     * Valid loaded credentials and assign credentials to the task
-     * @param  Task $task Download task
-     * @param  array $credentials Loaded credentials
-     */
-    private function validApiCredentials(Task $task, $credentials) {
-        if (!isset($credentials['applicationId']) || !isset($credentials['secret'])) {
-            throw new Exception(
-                'The credentials file is not correct : '
-                    .'please check that both applicationId and secret are correctly defined.',
-                static::ERROR_INCORRECT_CREDENTIALS
-            );
-        }
-
-        $this->verboseOutput("\tApplication ID\t: ".$credentials['applicationId'].PHP_EOL);
-        $this->verboseOutput("\tSecret\t\t: ".$credentials['secret'].PHP_EOL);
-        $task->setCredentials($credentials['applicationId'], $credentials['secret']);
-    }
-
-
-    //
-    // Destination parameter
-    //
-
-    /**
-     * Check validity of the destination parameter
-     * @param  string $destination Parameter value
-     * @return string              Validated and formatted destination value
-     */
-    public function destination($destination)
-    {
-        if (is_dir($destination) === false) {
-            throw new InvalidArgumentException(
-                'The given destination path ('.$destination.') is not a directory.',
-                self::ERROR_DESTINATION_NOTDIR
-            );
-        }
-
-        if (is_writable($destination) === false) {
-            throw new InvalidArgumentException(
-                'The given destination path ('.$destination.') is not writable.',
-                self::ERROR_DESTINATION_UNWRITABLE
-            );
-        }
-
-        return $destination;
-    }
-
-
-
-    //
-    // Quantity parameter
-    //
-
-    /**
-     * Check validity of the quantity parameter
-     * @param  string $parameter Parameter value
-     * @return int               Validated and formatted quantity value
-     */
-    public function quantity($parameter)
-    {
-        $quantity = $this->quantityFormat($parameter);
-
-        $this->quantityValidation($quantity);
-
-        return $quantity;
-    }
-
-    /**
-     * Format the quantity to integer
-     * @param  string $parameter Parameter value
-     * @return int               Formatted quantity value
-     */
-    private function quantityFormat($parameter)
-    {
-        if (is_numeric($parameter) === false) {
-            throw new InvalidArgumentException(
-                'The given quantity ('.$parameter.') is not numeric.',
-                self::ERROR_QUANTITY_NOTNUMERIC
-            );
-        }
-
-        return intval($parameter);
-    }
-
-    /**
-     * Check the quantity value
-     * @param int $quantity Formatted quantity value
-     */
-    private function quantityValidation($quantity)
-    {
-        if ($quantity < 0) {
-            throw new InvalidArgumentException(
-                'The given quantity ('.$quantity.') is not positive.',
-                self::ERROR_QUANTITY_NOTPOSITIVE
-            );
-        }
-
-        if ($quantity > 100) {
-            throw new InvalidArgumentException(
-                'The given quantity ('.$quantity.') is too high (should not be greater than 100).',
-                self::ERROR_QUANTITY_TOOHIGH
-            );
-        }
-    }
-
-
-
-    //
-    // History parameter
-    //
-
-    /**
-     * Check validity of the history parameter
-     * @param  string $history Parameter value
-     * @return null|string     Validated and formatted history value
-     */
-    public function history($history)
-    {
-        if (is_null($history)) {
-            return null;
-        }
-
-        $this->historyValidationType($history);
-        $this->historyValidationAccess($history);
-
-        return $history;
-    }
-
-    /**
-     * Check if history is not a dir
-     * @param  string $history Parameter value
-     */
-    private function historyValidationType($history)
-    {
-        if (is_dir($history) === true) {
-            throw new InvalidArgumentException(
-                'The given history path ('.$history.') is not a file.',
-                self::ERROR_HISTORY_NOTFILE
-            );
-        }
-    }
-
-    /**
-     * Check if history is accessible
-     * @param  string $history Parameter value
-     */
-    private function historyValidationAccess($history)
-    {
-        $handle = @fopen($history, 'a+');
-
-        if ($handle === false) {
-            throw new InvalidArgumentException(
-                'The given history path ('.$history.') can not be created or opened for read & write.',
-                self::ERROR_HISTORY_NOTRW
-            );
-        }
-
-        fclose($handle);
-    }
 }
