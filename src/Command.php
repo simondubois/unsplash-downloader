@@ -196,7 +196,7 @@ class Command extends SymfonyCommand
         $this->destinationParameter($validate, $task, $options['destination']);
         $this->quantityParameter($validate, $task, $options['quantity']);
         $this->historyParameter($validate, $task, $options['history']);
-        $this->featuredParameter($validate, $task, $options['featured']);
+        $this->featuredParameter($task, $options['featured']);
         $this->categoryParameter($validate, $task, $options['category']);
     }
 
@@ -252,11 +252,10 @@ class Command extends SymfonyCommand
 
     /**
      * Check & validate the featured parameter
-     * @param  Validate $validate Validate instance
      * @param  Task $task Download task
-     * @param  string $option Option value
+     * @param  bool $option Option value
      */
-    public function featuredParameter(Validate $validate, Task $task, $option)
+    public function featuredParameter(Task $task, $option)
     {
         $task->setFeatured($option);
 
