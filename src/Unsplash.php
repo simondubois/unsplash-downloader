@@ -1,6 +1,5 @@
 <?php namespace Simondubois\UnsplashDownloader;
 
-use Crew\Unsplash\ArrayObject;
 use Crew\Unsplash\Category;
 use Crew\Unsplash\Connection;
 use Crew\Unsplash\CuratedBatch;
@@ -56,7 +55,7 @@ class Unsplash
     /**
      * Request APi to get last photos
      * @param  int $quantity Number of photos to return
-     * @return array<string, string> Photo download links indexed by IDs
+     * @return string[] Photo download links indexed by IDs
      */
     public function allPhotos($quantity)
     {
@@ -72,7 +71,7 @@ class Unsplash
     /**
      * Request APi to get featured photos
      * @param  int $quantity Number of photos to return
-     * @return array<string, string> Photo download links indexed by IDs
+     * @return string[] Photo download links indexed by ID
      */
     public function featuredPhotos($quantity)
     {
@@ -83,7 +82,7 @@ class Unsplash
             $batch = CuratedBatch::find($batchInfo->id);
 
             // process photos
-            foreach ($batch->photos(1, 100) as $photo) {
+            foreach ($batch->photos() as $photo) {
                 $photos[$photo->id] = $photo->links['download'];
 
                 // quit if $quantity photos have been found
@@ -98,7 +97,7 @@ class Unsplash
 
     /**
      * Request APi to get all categories photos
-     * @return array<string, string> Category names indexed by IDs
+     * @return string[] Category names indexed by IDs
      */
     public function allCategories()
     {

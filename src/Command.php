@@ -142,8 +142,13 @@ class Command extends SymfonyCommand
                 Then any further download is going to ignore photos that have their ID in the history.
                 Usefull to delete unwanted pictures and prevent the CLI to download them again.'
         );
-        $this->addOption('featured', false, InputOption::VALUE_NONE, 'Download only featured photos.');
-        $this->addOption('categories', false, InputOption::VALUE_NONE, 'List categories and quit (no download will be performed).');
+        $this->addOption('featured', null, InputOption::VALUE_NONE, 'Download only featured photos.');
+        $this->addOption(
+            'categories',
+            null,
+            InputOption::VALUE_NONE,
+            'List categories and quit (no download will be performed).'
+        );
     }
 
 

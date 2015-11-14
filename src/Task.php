@@ -1,6 +1,5 @@
 <?php namespace Simondubois\UnsplashDownloader;
 
-use Crew\Unsplash\Photo;
 use Exception;
 
 /**
@@ -311,7 +310,7 @@ class Task
     /**
      * Request APi to get photos to downloads
      * @param Unsplash $unsplash Proxy to Unsplash API
-     * @return array<string, string> Photo download links indexed by ID
+     * @return string[] Photo download links indexed by ID
      */
     public function getPhotos(Unsplash $unsplash) {
         $this->notify('Get photo list from unsplash... ');
@@ -328,7 +327,7 @@ class Task
 
     /**
      * Download all photos
-     * @param array<string, string> $photos Photo download links indexed by ID
+     * @param string[] $photos Photo download links indexed by ID
      * @return boolean True if all downloads are successful
      */
     public function downloadAllPhotos($photos)

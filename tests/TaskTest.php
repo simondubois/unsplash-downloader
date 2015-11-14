@@ -258,14 +258,12 @@ class TaskTest extends PHPUnit_Framework_TestCase
      */
     public function testCategories() {
         // Assert connect error
-        $history = $this->getMock('Simondubois\UnsplashDownloader\History');
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['connect', 'listCategories']);
         $task->expects($this->once())->method('connect')->willReturn(false);
         $task->expects($this->never())->method('listCategories');
         $this->assertFalse($task->categories());
 
         // Assert success
-        $history = $this->getMock('Simondubois\UnsplashDownloader\History');
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['connect', 'listCategories']);
         $task->expects($this->once())->method('connect')->willReturn(true);
         $task->expects($this->once())->method('listCategories')->willReturn(true);
@@ -324,19 +322,9 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $quantity = 10;
         $photos = ['0123456789' => 'http://www.example.com'];
 
-        // Instantiate task
-        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['notify']);
-        $task->expects($this->exactly(2))->method('notify')->withConsecutive(
-            [$this->identicalTo('Get photo list from unsplash... '), $this->identicalTo(null)],
-            [$this->identicalTo('success.'.PHP_EOL), $this->identicalTo(Task::NOTIFY_INFO)]
-        );
-        $task->setQuantity($quantity);
-
         // Instantiate proxy
         $unsplash = $this->getMock(
-            'Simondubois\UnsplashDownloader\Unsplash',
-            ['allPhotos', 'featuredPhotos'],
-            [null, null]
+            'Simondubois\UnsplashDownloader\Unsplash', ['allPhotos', 'featuredPhotos'], [null, null]
         );
         $unsplash->expects($this->once())
             ->method('allPhotos')
@@ -344,7 +332,13 @@ class TaskTest extends PHPUnit_Framework_TestCase
             ->willReturn($photos);
         $unsplash->expects($this->never())->method('featuredPhotos');
 
-        // Assert return value
+        // Instantiate task
+        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['notify']);
+        $task->expects($this->exactly(2))->method('notify')->withConsecutive(
+            [$this->identicalTo('Get photo list from unsplash... '), $this->identicalTo(null)],
+            [$this->identicalTo('success.'.PHP_EOL), $this->identicalTo(Task::NOTIFY_INFO)]
+        );
+        $task->setQuantity($quantity);
         $this->assertEquals($photos, $task->getPhotos($unsplash));
     }
 
@@ -356,6 +350,16 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $quantity = 10;
         $photos = ['0123456789' => 'http://www.example.com'];
 
+        // Instantiate proxy
+        $unsplash = $this->getMock(
+            'Simondubois\UnsplashDownloader\Unsplash', ['allPhotos', 'featuredPhotos'], [null, null]
+        );
+        $unsplash->expects($this->never())->method('allPhotos');
+        $unsplash->expects($this->once())
+            ->method('featuredPhotos')
+            ->with($this->identicalTo($quantity))
+            ->willReturn($photos);
+
         // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['notify']);
         $task->expects($this->exactly(2))->method('notify')->withConsecutive(
@@ -364,20 +368,6 @@ class TaskTest extends PHPUnit_Framework_TestCase
         );
         $task->setQuantity($quantity);
         $task->setFeatured(true);
-
-        // Instantiate proxy
-        $unsplash = $this->getMock(
-            'Simondubois\UnsplashDownloader\Unsplash',
-            ['allPhotos', 'featuredPhotos'],
-            [null, null]
-        );
-        $unsplash->expects($this->never())->method('allPhotos');
-        $unsplash->expects($this->once())
-            ->method('featuredPhotos')
-            ->with($this->identicalTo($quantity))
-            ->willReturn($photos);
-
-        // Assert return value
         $this->assertEquals($photos, $task->getPhotos($unsplash));
     }
 
@@ -387,26 +377,18 @@ class TaskTest extends PHPUnit_Framework_TestCase
     public function testFailedDownloadAllPhotos() {
         // Prepare data
         $quantity = 10;
-        $photoSource = 'http://www.example.com';
-        $photos = array_fill(0, $quantity, $photoSource);
+        $url = 'http://www.example.com';
+        $photos = array_fill(0, $quantity, $url);
 
         // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['downloadOnePhoto']);
-        $task->expects($this->exactly($quantity))
-            ->method('downloadOnePhoto')
-            ->withConsecutive(
-                [$this->identicalTo(0), $this->identicalTo($photoSource)],
-                [$this->identicalTo(1), $this->identicalTo($photoSource)],
-                [$this->identicalTo(2), $this->identicalTo($photoSource)],
-                [$this->identicalTo(3), $this->identicalTo($photoSource)],
-                [$this->identicalTo(4), $this->identicalTo($photoSource)],
-                [$this->identicalTo(5), $this->identicalTo($photoSource)],
-                [$this->identicalTo(6), $this->identicalTo($photoSource)],
-                [$this->identicalTo(7), $this->identicalTo($photoSource)],
-                [$this->identicalTo(8), $this->identicalTo($photoSource)],
-                [$this->identicalTo(9), $this->identicalTo($photoSource)]
-            )
-            ->willReturn(false);
+        $task->expects($this->exactly($quantity))->method('downloadOnePhoto')->withConsecutive(
+            [$this->identicalTo(0), $this->identicalTo($url)], [$this->identicalTo(1), $this->identicalTo($url)],
+            [$this->identicalTo(2), $this->identicalTo($url)], [$this->identicalTo(3), $this->identicalTo($url)],
+            [$this->identicalTo(4), $this->identicalTo($url)], [$this->identicalTo(5), $this->identicalTo($url)],
+            [$this->identicalTo(6), $this->identicalTo($url)], [$this->identicalTo(7), $this->identicalTo($url)],
+            [$this->identicalTo(8), $this->identicalTo($url)], [$this->identicalTo(9), $this->identicalTo($url)]
+        )->willReturn(false);
         $task->setQuantity($quantity);
 
         // Assert return value
@@ -419,26 +401,18 @@ class TaskTest extends PHPUnit_Framework_TestCase
     public function testSuccessfulDownloadAllPhotos() {
         // Prepare data
         $quantity = 10;
-        $photoSource = 'http://www.example.com';
-        $photos = array_fill(0, $quantity, $photoSource);
+        $url = 'http://www.example.com';
+        $photos = array_fill(0, $quantity, $url);
 
         // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['downloadOnePhoto']);
-        $task->expects($this->exactly($quantity))
-            ->method('downloadOnePhoto')
-            ->withConsecutive(
-                [$this->identicalTo(0), $this->identicalTo($photoSource)],
-                [$this->identicalTo(1), $this->identicalTo($photoSource)],
-                [$this->identicalTo(2), $this->identicalTo($photoSource)],
-                [$this->identicalTo(3), $this->identicalTo($photoSource)],
-                [$this->identicalTo(4), $this->identicalTo($photoSource)],
-                [$this->identicalTo(5), $this->identicalTo($photoSource)],
-                [$this->identicalTo(6), $this->identicalTo($photoSource)],
-                [$this->identicalTo(7), $this->identicalTo($photoSource)],
-                [$this->identicalTo(8), $this->identicalTo($photoSource)],
-                [$this->identicalTo(9), $this->identicalTo($photoSource)]
-            )
-            ->willReturn(true);
+        $task->expects($this->exactly($quantity))->method('downloadOnePhoto')->withConsecutive(
+                [$this->identicalTo(0), $this->identicalTo($url)], [$this->identicalTo(1), $this->identicalTo($url)],
+                [$this->identicalTo(2), $this->identicalTo($url)], [$this->identicalTo(3), $this->identicalTo($url)],
+                [$this->identicalTo(4), $this->identicalTo($url)], [$this->identicalTo(5), $this->identicalTo($url)],
+                [$this->identicalTo(6), $this->identicalTo($url)], [$this->identicalTo(7), $this->identicalTo($url)],
+                [$this->identicalTo(8), $this->identicalTo($url)], [$this->identicalTo(9), $this->identicalTo($url)]
+            )->willReturn(true);
         $task->setQuantity($quantity);
 
         // Assert return value
