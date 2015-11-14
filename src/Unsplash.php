@@ -61,7 +61,7 @@ class Unsplash
     {
         $photos = [];
 
-        foreach (Photo::all($quantity) as $photo) {
+        foreach (Photo::all(1, $quantity) as $photo) {
             $photos[$photo->id] = $photo->links['download'];
         };
 
@@ -69,7 +69,24 @@ class Unsplash
     }
 
     /**
-     * Request APi to get featured photos
+     * Request APi to get last photos in category
+     * @param  int $quantity Number of photos to return
+     * @param  int $categoy Category ID
+     * @return string[] Photo download links indexed by IDs
+     */
+    public function photosInCategory($quantity, $category)
+    {
+        $photos = [];
+
+        foreach (Category::find($category)->photos(1, $quantity) as $photo) {
+            $photos[$photo->id] = $photo->links['download'];
+        };
+
+        return $photos;
+    }
+
+    /**
+     * Request APi to get last featured photos
      * @param  int $quantity Number of photos to return
      * @return string[] Photo download links indexed by ID
      */

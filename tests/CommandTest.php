@@ -28,7 +28,7 @@ class CommandTest extends PHPUnit_Framework_TestCase
             $validate->expects($this->once())
                 ->method($key)
                 ->with($this->identicalTo($value))
-                ->willReturn($key === 'quantity' ? intval($value) : $value);
+                ->willReturn(is_numeric($value) ? intval($value) : $value);
         }
 
         return $validate;
@@ -163,56 +163,60 @@ class CommandTest extends PHPUnit_Framework_TestCase
         mkdir($destination);
         $history = $root.'/history';
 
-        // Assert attribute assignation (with history)
+        // Assert attribute assignation (default values)
         $options = [
-            'destination' => $destination,
+            'destination' => getcwd(),
             'quantity' => '10',
-            'history' => $history,
+            'history' => null,
             'featured' => false,
+            'category' => '123',
         ];
 
-        // Instantiate task (with history)
+        // Instantiate task (default values)
         $task = $this->getMock(
             'Simondubois\UnsplashDownloader\Task',
-            ['setDestination', 'setQuantity', 'setHistory', 'setFeatured']
+            ['setDestination', 'setQuantity', 'setHistory', 'setFeatured', 'setCategory']
         );
-        $task->expects($this->once())->method('setDestination')->with($this->identicalTo($destination));
-        $task->expects($this->once())->method('setQuantity')->with($this->identicalTo(10));
-        $task->expects($this->once())->method('setHistory')->with($this->identicalTo($history));
-        $task->expects($this->once())->method('setFeatured')->with($this->identicalTo(false));
+        $task->expects($this->once())->method('setDestination')->with($this->identicalTo($options['destination']));
+        $task->expects($this->once())->method('setQuantity')->with($this->identicalTo(intval($options['quantity'])));
+        $task->expects($this->once())->method('setHistory')->with($this->identicalTo($options['history']));
+        $task->expects($this->once())->method('setFeatured')->with($this->identicalTo($options['featured']));
+        $task->expects($this->once())->method('setCategory')->with($this->identicalTo(intval($options['category'])));
         $command->parameters($this->mockValidate($options), $task, $options);
 
-        // Assert output content (with history)
+        // Assert output content (default values)
+        $output = $command->output->fetch();
+        $this->assertContains(getcwd(), $output);
+        $this->assertContains($options['quantity'], $output);
+        $this->assertContains('Do not use history.', $output);
+        $this->assertContains('featured and not featured', $output);
+
+        // Assert attribute assignation (custom values)
+        $options = [
+            'destination' => $destination,
+            'quantity' => '100',
+            'history' => $history,
+            'featured' => true,
+            'category' => null,
+        ];
+
+        // Instantiate task (custom values)
+        $task = $this->getMock(
+            'Simondubois\UnsplashDownloader\Task',
+            ['setDestination', 'setQuantity', 'setHistory', 'setFeatured', 'setCategory']
+        );
+        $task->expects($this->once())->method('setDestination')->with($this->identicalTo($options['destination']));
+        $task->expects($this->once())->method('setQuantity')->with($this->identicalTo(intval($options['quantity'])));
+        $task->expects($this->once())->method('setHistory')->with($this->identicalTo($options['history']));
+        $task->expects($this->once())->method('setFeatured')->with($this->identicalTo($options['featured']));
+        $task->expects($this->once())->method('setCategory')->with($this->identicalTo($options['category']));
+        $command->parameters($this->mockValidate($options), $task, $options);
+
+        // Assert output content (custom values)
         $output = $command->output->fetch();
         $this->assertContains($options['destination'], $output);
         $this->assertContains($options['quantity'], $output);
         $this->assertContains($options['history'], $output);
-        $this->assertContains('featured and not featured', $output);
-
-        // Assert attribute assignation (without history)
-        $options = [
-            'destination' => $destination,
-            'quantity' => '10',
-            'history' => null,
-            'featured' => true,
-        ];
-
-        // Instantiate task (without history)
-        $task = $this->getMock(
-            'Simondubois\UnsplashDownloader\Task',
-            ['setDestination', 'setQuantity', 'setHistory', 'setFeatured']
-        );
-        $task->expects($this->once())->method('setDestination')->with($this->identicalTo($destination));
-        $task->expects($this->once())->method('setQuantity')->with($this->identicalTo(10));
-        $task->expects($this->once())->method('setHistory')->with($this->identicalTo(null));
-        $task->expects($this->once())->method('setFeatured')->with($this->identicalTo(true));
-        $command->parameters($this->mockValidate($options), $task, $options);
-
-        // Assert output content (without history)
-        $output = $command->output->fetch();
-        $this->assertContains($options['destination'], $output);
-        $this->assertContains($options['quantity'], $output);
-        $this->assertContains('Do not use history.', $output);
         $this->assertContains('only featured', $output);
     }
 

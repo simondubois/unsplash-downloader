@@ -68,46 +68,46 @@ class Validate {
      */
     public function quantity($value)
     {
-        $quantity = $this->quantityFormat($value);
+        $value = $this->quantityFormat($value);
 
-        $this->quantityBoudaries($quantity);
+        $this->quantityBoudaries($value);
 
-        return $quantity;
+        return $value;
     }
 
     /**
      * Format the quantity to integer
-     * @param  string $parameter Parameter value
+     * @param  string $value Parameter value
      * @return int               Formatted quantity value
      */
-    private function quantityFormat($parameter)
+    private function quantityFormat($value)
     {
-        if (is_numeric($parameter) === false) {
+        if (is_numeric($value) === false) {
             throw new InvalidArgumentException(
-                'The given quantity ('.$parameter.') is not numeric.',
+                'The given quantity ('.$value.') is not numeric.',
                 self::ERROR_QUANTITY_NOTNUMERIC
             );
         }
 
-        return intval($parameter);
+        return intval($value);
     }
 
     /**
      * Check the quantity value
-     * @param int $quantity Formatted quantity value
+     * @param int $value Formatted quantity value
      */
-    private function quantityBoudaries($quantity)
+    private function quantityBoudaries($value)
     {
-        if ($quantity < 0) {
+        if ($value < 0) {
             throw new InvalidArgumentException(
-                'The given quantity ('.$quantity.') is not positive.',
+                'The given quantity ('.$value.') is not positive.',
                 self::ERROR_QUANTITY_NOTPOSITIVE
             );
         }
 
-        if ($quantity > 100) {
+        if ($value > 100) {
             throw new InvalidArgumentException(
-                'The given quantity ('.$quantity.') is too high (should not be greater than 100).',
+                'The given quantity ('.$value.') is too high (should not be greater than 100).',
                 self::ERROR_QUANTITY_TOOHIGH
             );
         }
@@ -122,30 +122,30 @@ class Validate {
 
     /**
      * Check validity of the history parameter
-     * @param  string $history Parameter value
+     * @param  string $value Parameter value
      * @return null|string     Validated and formatted history value
      */
-    public function history($history)
+    public function history($value)
     {
-        if (is_null($history)) {
+        if (is_null($value)) {
             return null;
         }
 
-        $this->historyValidationType($history);
-        $this->historyValidationAccess($history);
+        $this->historyValidationType($value);
+        $this->historyValidationAccess($value);
 
-        return $history;
+        return $value;
     }
 
     /**
      * Check if history is not a dir
-     * @param  string $history Parameter value
+     * @param  string $value Parameter value
      */
-    private function historyValidationType($history)
+    private function historyValidationType($value)
     {
-        if (is_dir($history) === true) {
+        if (is_dir($value) === true) {
             throw new InvalidArgumentException(
-                'The given history path ('.$history.') is not a file.',
+                'The given history path ('.$value.') is not a file.',
                 self::ERROR_HISTORY_NOTFILE
             );
         }
@@ -153,15 +153,15 @@ class Validate {
 
     /**
      * Check if history is accessible
-     * @param  string $history Parameter value
+     * @param  string $value Parameter value
      */
-    private function historyValidationAccess($history)
+    private function historyValidationAccess($value)
     {
-        $handle = @fopen($history, 'a+');
+        $handle = @fopen($value, 'a+');
 
         if ($handle === false) {
             throw new InvalidArgumentException(
-                'The given history path ('.$history.') can not be created or opened for read & write.',
+                'The given history path ('.$value.') can not be created or opened for read & write.',
                 self::ERROR_HISTORY_NOTRW
             );
         }
@@ -177,25 +177,40 @@ class Validate {
 
     /**
      * Check validity of the destination parameter
-     * @param  string $destination Parameter value
+     * @param  string $value Parameter value
      * @return string              Validated and formatted destination value
      */
-    public function destination($destination)
+    public function destination($value)
     {
-        if (is_dir($destination) === false) {
+        if (is_dir($value) === false) {
             throw new InvalidArgumentException(
-                'The given destination path ('.$destination.') is not a directory.',
+                'The given destination path ('.$value.') is not a directory.',
                 self::ERROR_DESTINATION_NOTDIR
             );
         }
 
-        if (is_writable($destination) === false) {
+        if (is_writable($value) === false) {
             throw new InvalidArgumentException(
-                'The given destination path ('.$destination.') is not writable.',
+                'The given destination path ('.$value.') is not writable.',
                 self::ERROR_DESTINATION_UNWRITABLE
             );
         }
 
-        return $destination;
+        return $value;
     }
+
+    /**
+     * Check validity of the category parameter
+     * @param  string $value Parameter value
+     * @return string Validated and formatted category value
+     */
+    public function category($value)
+    {
+        if (is_null($value)) {
+            return null;
+        }
+
+        return intval($value);
+    }
+
 }

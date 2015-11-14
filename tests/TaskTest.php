@@ -118,6 +118,23 @@ class TaskTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test Simondubois\UnsplashDownloader\Task::getCategory()
+     *     & Simondubois\UnsplashDownloader\Task::setCategory()
+     */
+    public function testCategory() {
+        // Instantiate task & custom value
+        $task = new Task();
+        $category = 1;
+
+        // Assert default value
+        $this->assertNull($task->getCategory());
+
+        // Assert custom value
+        $task->setCategory($category);
+        $this->assertEquals($category, $task->getCategory());
+    }
+
+    /**
      * Test Simondubois\UnsplashDownloader\Task::getHistory()
      *     & Simondubois\UnsplashDownloader\Task::setHistory()
      */
@@ -282,7 +299,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
         );
 
         // Instantiate proxy
-        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['initHttpClient'], [null, null]);
+        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['initHttpClient'], ['', '']);
         $unsplash->expects($this->once())->method('initHttpClient')->willReturn(false);
 
         // Assert exception
@@ -307,7 +324,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
         );
 
         // Instantiate proxy
-        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['initHttpClient'], [null, null]);
+        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['initHttpClient'], ['', '']);
         $unsplash->expects($this->once())->method('initHttpClient')->willReturn(true);
 
         // Assert return value
@@ -323,12 +340,13 @@ class TaskTest extends PHPUnit_Framework_TestCase
 
         // Instantiate proxy
         $unsplash = $this->getMock(
-            'Simondubois\UnsplashDownloader\Unsplash', ['allPhotos', 'featuredPhotos'], [null, null]
+            'Simondubois\UnsplashDownloader\Unsplash', ['allPhotos', 'photosInCategory', 'featuredPhotos'], ['', '']
         );
         $unsplash->expects($this->once())
             ->method('allPhotos')
             ->with($this->identicalTo($quantity))
             ->willReturn($photos);
+        $unsplash->expects($this->never())->method('photosInCategory');
         $unsplash->expects($this->never())->method('featuredPhotos');
 
         // Instantiate task
@@ -344,15 +362,46 @@ class TaskTest extends PHPUnit_Framework_TestCase
     /**
      * Test Simondubois\UnsplashDownloader\Task::getPhotos()
      */
+    public function testGetPhotosInCategory() {
+        $quantity = 10;
+        $photos = ['0123456789' => 'http://www.example.com'];
+        $category = 1;
+
+        // Instantiate proxy
+        $unsplash = $this->getMock(
+            'Simondubois\UnsplashDownloader\Unsplash', ['allPhotos', 'photosInCategory', 'featuredPhotos'], ['', '']
+        );
+        $unsplash->expects($this->never())->method('allPhotos');
+        $unsplash->expects($this->once())
+            ->method('photosInCategory')
+            ->with($this->identicalTo($quantity), $this->identicalTo($category))
+            ->willReturn($photos);
+        $unsplash->expects($this->never())->method('featuredPhotos');
+
+        // Instantiate task
+        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['notify']);
+        $task->expects($this->exactly(2))->method('notify')->withConsecutive(
+            [$this->identicalTo('Get photo list from unsplash... '), $this->identicalTo(null)],
+            [$this->identicalTo('success.'.PHP_EOL), $this->identicalTo(Task::NOTIFY_INFO)]
+        );
+        $task->setQuantity($quantity);
+        $task->setCategory($category);
+        $this->assertEquals($photos, $task->getPhotos($unsplash));
+    }
+
+    /**
+     * Test Simondubois\UnsplashDownloader\Task::getPhotos()
+     */
     public function testGetFeaturedPhotos() {
         $quantity = 10;
         $photos = ['0123456789' => 'http://www.example.com'];
 
         // Instantiate proxy
         $unsplash = $this->getMock(
-            'Simondubois\UnsplashDownloader\Unsplash', ['allPhotos', 'featuredPhotos'], [null, null]
+            'Simondubois\UnsplashDownloader\Unsplash', ['allPhotos', 'photosInCategory', 'featuredPhotos'], ['', '']
         );
         $unsplash->expects($this->never())->method('allPhotos');
+        $unsplash->expects($this->never())->method('photosInCategory');
         $unsplash->expects($this->once())->method('featuredPhotos')
             ->with($this->identicalTo($quantity))->willReturn($photos);
 
@@ -461,7 +510,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $categories = [1 => 'First category', 2 => 'Second category'];
 
         // Instantiate proxy
-        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['allCategories'], [null, null]);
+        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['allCategories'], ['', '']);
         $unsplash->expects($this->once())->method('allCategories')->willReturn($categories);
 
         // Instantiate task

@@ -7,7 +7,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * A command to check parameters validity and call a download task. Steps are :
- *  - check option validity (destination, count, history, featured, categories).
+ *  - check option validity (destination, count, history, featured, categories, category).
  *  - load credentials (from local unsplash.ini file).
  *  - create a task (to deal with Unsplash API).
  *  - execute the task.
@@ -125,8 +125,14 @@ class Command extends SymfonyCommand
                 Then any further download is going to ignore photos that have their ID in the history.
                 Usefull to delete unwanted pictures and prevent the CLI to download them again.'
         );
-        $this->addOption('featured', null, InputOption::VALUE_NONE, 'Download only featured photos.');
+        $this->addOption('featured', null, InputOption::VALUE_NONE, 'Download only featured photos (incompatible with --category option).');
         $this->addOption('categories', null, InputOption::VALUE_NONE, 'Print out categories and quit (no download).');
+        $this->addOption(
+            'category',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'Only download photos for the given category ID (incompatible with the --featured option).'
+        );
     }
 
 
@@ -211,6 +217,12 @@ class Command extends SymfonyCommand
         $message = $options['featured'] ?
             'Download only featured photos.' : 'Download featured and not featured photos.';
         $this->verboseOutput($message.PHP_EOL);
+
+        $category = $validate->category($options['category']);
+        $task->setCategory($category);
+        if (is_int($category) && $options['featured'] === false) {
+            $this->verboseOutput('Download only photos for category ID '.$options['category'].'.'.PHP_EOL);
+        }
     }
 
 }

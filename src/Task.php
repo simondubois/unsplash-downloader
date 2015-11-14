@@ -65,6 +65,12 @@ class Task
     private $quantity;
 
     /**
+     * Category ID
+     * @var int
+     */
+    private $category;
+
+    /**
      * True if the task should only download featured photos
      * @var bool
      */
@@ -126,6 +132,15 @@ class Task
     public function getQuantity()
     {
         return $this->quantity;
+    }
+
+    /**
+     * Get category attribute
+     * @return int Category ID
+     */
+    public function getCategory()
+    {
+        return $this->category;
     }
 
     /**
@@ -198,6 +213,15 @@ class Task
     public function setQuantity($quantity)
     {
         $this->quantity = $quantity;
+    }
+
+    /**
+     * Set category attribute
+     * @param int $category Number of photos to download
+     */
+    public function setCategory($category)
+    {
+        $this->category = $category;
     }
 
     /**
@@ -317,6 +341,8 @@ class Task
 
         if ($this->featured) {
             $photos = $unsplash->featuredPhotos($this->quantity);
+        } elseif (is_int($this->category)) {
+            $photos = $unsplash->photosInCategory($this->quantity, $this->category);
         } else {
             $photos = $unsplash->allPhotos($this->quantity);
         }

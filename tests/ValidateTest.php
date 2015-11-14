@@ -248,4 +248,15 @@ class ValidateTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($missingFile, $validate->history($missingFile));
     }
 
+    /**
+     * Test Simondubois\UnsplashDownloader\Validate::category()
+     */
+    public function testValidCategory() {
+        $validate = new Validate();
+
+        $this->assertNull($validate->category(null));
+        $this->assertEquals(1, $validate->category('1'));
+        $this->assertEquals(0, $validate->category('abc'));
+    }
+
 }

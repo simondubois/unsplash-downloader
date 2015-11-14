@@ -13,6 +13,7 @@ CLI to download photos from unsplash.com
 Download photos :
 
 	unsplash-downloader [--destination DESTINATION] [--quantity QUANTITY] [--history HISTORY] [--featured]
+	unsplash-downloader [--destination DESTINATION] [--quantity QUANTITY] [--history HISTORY] [--category CATEGORY]
 	unsplash-downloader [--categories]
 
 ### Executable
@@ -41,9 +42,12 @@ Filename to use as download history. When photos are downloaded, their IDs will 
 *Default: none*
 
       --featured
-Download only featured photos.
+Download only featured photos (incompatible with the --category option).
 *Default: false*
 
+      --category CATEGORY
+Only download photos for the given category ID (incompatible with the --featured option).
+*Default: none*
 
       --categories
 Print out categories and quit (no download).
