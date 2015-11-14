@@ -46,7 +46,7 @@ Download only featured photos.
 
 
       --categories
-Print out categories and quit (no download will be performed).
+Print out categories and quit (no download).
 *Default: false*
 
 -----

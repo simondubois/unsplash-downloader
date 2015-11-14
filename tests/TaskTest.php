@@ -353,10 +353,8 @@ class TaskTest extends PHPUnit_Framework_TestCase
             'Simondubois\UnsplashDownloader\Unsplash', ['allPhotos', 'featuredPhotos'], [null, null]
         );
         $unsplash->expects($this->never())->method('allPhotos');
-        $unsplash->expects($this->once())
-            ->method('featuredPhotos')
-            ->with($this->identicalTo($quantity))
-            ->willReturn($photos);
+        $unsplash->expects($this->once())->method('featuredPhotos')
+            ->with($this->identicalTo($quantity))->willReturn($photos);
 
         // Instantiate task
         $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['notify']);

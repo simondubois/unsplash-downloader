@@ -141,9 +141,7 @@ class Command extends SymfonyCommand
                 Usefull to delete unwanted pictures and prevent the CLI to download them again.'
         );
         $this->addOption('featured', null, InputOption::VALUE_NONE, 'Download only featured photos.');
-        $this->addOption(
-            'categories', null, InputOption::VALUE_NONE, 'Print out categories and quit (no download will be performed).'
-        );
+        $this->addOption('categories', null, InputOption::VALUE_NONE, 'Print out categories and quit (no download).');
     }
 
 
@@ -187,32 +185,26 @@ class Command extends SymfonyCommand
     /**
      * Check & validate the parameters
      * @param  Task $task Download task
-     * @param  array $options Command options
+     * @param  array $opt Command options
      */
-    public function parameters(Task $task, $options)
+    public function parameters(Task $task, $opt)
     {
-        $destination = $this->destination($options['destination']);
+        $destination = $this->destination($opt['destination']);
         $task->setDestination($destination);
         $this->verboseOutput('Download photos to '.$destination.'.'.PHP_EOL);
 
-        $quantity = $this->quantity($options['quantity']);
+        $quantity = $this->quantity($opt['quantity']);
         $task->setQuantity($quantity);
         $this->verboseOutput('Download the last '.$quantity.' photos.'.PHP_EOL);
 
-        $history = $this->history($options['history']);
+        $history = $this->history($opt['history']);
         $task->setHistory($history);
-        if (is_string($history)) {
-            $this->verboseOutput('Use '.$history.' as history.'.PHP_EOL);
-        } else {
-            $this->verboseOutput('Do not use history.'.PHP_EOL);
-        }
+        $message = is_string($history) ? 'Use '.$history.' as history.' : 'Do not use history.';
+        $this->verboseOutput($message.PHP_EOL);
 
-        $task->setFeatured($options['featured']);
-        if ($options['featured']) {
-            $this->verboseOutput('Download only featured photos.'.PHP_EOL);
-        } else {
-            $this->verboseOutput('Download featured and not featured photos.'.PHP_EOL);
-        }
+        $task->setFeatured($opt['featured']);
+        $message = $opt['featured'] ? 'Download only featured photos.' : 'Download featured and not featured photos.';
+        $this->verboseOutput($message.PHP_EOL);
     }
 
     /**
