@@ -1,6 +1,7 @@
 <?php namespace Simondubois\UnsplashDownloader;
 
 use Crew\Unsplash\Photo;
+use Exception;
 
 /**
  * A task to download photos from Unsplash. Steps are
@@ -256,7 +257,7 @@ class Task
      * Find photos and download them
      * @return bool True if the execution is successful
      */
-    public function execute()
+    public function download()
     {
         $unsplash = new Unsplash($this->unsplashApplicationId, $this->unsplashSecret);
 
@@ -269,6 +270,21 @@ class Task
         $this->history->save();
 
         return $success;
+    }
+
+    /**
+     * List categories
+     * @return bool True if the execution is successful
+     */
+    public function categories()
+    {
+        $unsplash = new Unsplash($this->unsplashApplicationId, $this->unsplashSecret);
+
+        if ($this->connect($unsplash) === false) {
+            return false;
+        }
+
+        return $this->listCategories($unsplash);
     }
 
     /**
@@ -286,7 +302,7 @@ class Task
         }
 
         $this->notify('failed.'.PHP_EOL, self::NOTIFY_ERROR);
-        throw new \Exception(
+        throw new Exception(
             'Can not connect to unsplash (check your Internet connection)',
             self::ERROR_CONNECTION
         );
@@ -353,6 +369,23 @@ class Task
         $this->history->put($id);
 
         $this->notify('success.'.PHP_EOL, self::NOTIFY_INFO);
+        return true;
+    }
+
+    /**
+     * List all categories returned by API
+     * @param Unsplash $unsplash Proxy to Unsplash API
+     * @return boolean True on success
+     */
+    public function listCategories(Unsplash $unsplash)
+    {
+        $this->notify('Unsplash categories :'.PHP_EOL);
+
+        $categories = $unsplash->allCategories();
+        foreach ($categories as $id => $name) {
+            $this->notify(sprintf("\t%s => %s%s", $id, $name, PHP_EOL));
+        }
+
         return true;
     }
 

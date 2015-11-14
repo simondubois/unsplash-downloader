@@ -9,7 +9,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * A command to check parameters validity and call a download task. Steps are :
- *  - check option validity (destination, count, history, featured).
+ *  - check option validity (destination, count, history, featured, categories).
  *  - load credentials (from local unsplash.ini file).
  *  - create a task (to deal with Unsplash API).
  *  - execute the task.
@@ -143,6 +143,7 @@ class Command extends SymfonyCommand
                 Usefull to delete unwanted pictures and prevent the CLI to download them again.'
         );
         $this->addOption('featured', false, InputOption::VALUE_NONE, 'Download only featured photos.');
+        $this->addOption('categories', false, InputOption::VALUE_NONE, 'List categories and quit (no download will be performed).');
     }
 
 
@@ -161,9 +162,15 @@ class Command extends SymfonyCommand
         $this->output = $output;
 
         $task = $this->task();
-        $this->parameters($task, $input->getOptions());
         $this->loadApiCredentials($task);
-        $task->execute();
+
+        if ($input->getOption('categories')) {
+            $task->categories();
+            return;
+        }
+
+        $this->parameters($task, $input->getOptions());
+        $task->download();
     }
 
     /**

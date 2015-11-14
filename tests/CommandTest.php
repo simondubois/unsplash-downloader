@@ -68,20 +68,44 @@ class CommandTest extends PHPUnit_Framework_TestCase
     /**
      * Test Simondubois\UnsplashDownloader\Command::execute()
      */
-    public function testExecute() {
+    public function testCategoriesExecute() {
         // Mock task
-        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['execute']);
-        $task->expects($this->once())->method('execute');
+        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['categories', 'download']);
+        $task->expects($this->once())->method('categories');
+        $task->expects($this->never())->method('download');
 
         // Mock command
         $command = $this->getMock(
             'Simondubois\UnsplashDownloader\Command',
-            ['task', 'parameters', 'loadApiCredentials']
+            ['task', 'loadApiCredentials', 'parameters']
         );
         $command->expects($this->once())->method('task')->willReturn($task);
-        $command->expects($this->once())->method('parameters')
-            ->with($this->identicalTo($task), $this->anything());
+        $command->expects($this->once())->method('loadApiCredentials');
+        $command->expects($this->never())->method('parameters');
+
+        // Execute command
+        $input = new ArrayInput(['--categories' => true], $command->getDefinition());
+        $output = new BufferedOutput();
+        $command->execute($input, $output);
+    }
+
+    /**
+     * Test Simondubois\UnsplashDownloader\Command::execute()
+     */
+    public function testDownloadExecute() {
+        // Mock task
+        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['categories', 'download']);
+        $task->expects($this->never())->method('categories');
+        $task->expects($this->once())->method('download');
+
+        // Mock command
+        $command = $this->getMock(
+            'Simondubois\UnsplashDownloader\Command',
+            ['task', 'loadApiCredentials', 'parameters']
+        );
+        $command->expects($this->once())->method('task')->willReturn($task);
         $command->expects($this->once())->method('loadApiCredentials')->with($this->identicalTo($task));
+        $command->expects($this->once())->method('parameters')->with($this->identicalTo($task), $this->anything());
 
         // Execute command
         $input = new ArrayInput([], $command->getDefinition());
