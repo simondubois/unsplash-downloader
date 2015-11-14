@@ -120,16 +120,18 @@ class CommandTest extends PHPUnit_Framework_TestCase
             'destination' => $destination,
             'quantity' => '10',
             'history' => $history,
+            'featured' => false,
         ];
 
         // Instantiate task (with history)
         $task = $this->getMock(
             'Simondubois\UnsplashDownloader\Task',
-            ['setDestination', 'setQuantity', 'setHistory']
+            ['setDestination', 'setQuantity', 'setHistory', 'setFeatured']
         );
         $task->expects($this->once())->method('setDestination')->with($this->identicalTo($destination));
         $task->expects($this->once())->method('setQuantity')->with($this->identicalTo(10));
         $task->expects($this->once())->method('setHistory')->with($this->identicalTo($history));
+        $task->expects($this->once())->method('setFeatured')->with($this->identicalTo(false));
         $command->parameters($task, $options);
 
         // Assert output content (with history)
@@ -137,22 +139,25 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $this->assertContains($options['destination'], $output);
         $this->assertContains($options['quantity'], $output);
         $this->assertContains($options['history'], $output);
+        $this->assertContains('featured and not featured', $output);
 
         // Assert attribute assignation (without history)
         $options = [
             'destination' => $destination,
             'quantity' => '10',
             'history' => null,
+            'featured' => true,
         ];
 
         // Instantiate task (without history)
         $task = $this->getMock(
             'Simondubois\UnsplashDownloader\Task',
-            ['setDestination', 'setQuantity', 'setHistory']
+            ['setDestination', 'setQuantity', 'setHistory', 'setFeatured']
         );
         $task->expects($this->once())->method('setDestination')->with($this->identicalTo($destination));
         $task->expects($this->once())->method('setQuantity')->with($this->identicalTo(10));
         $task->expects($this->once())->method('setHistory')->with($this->identicalTo(null));
+        $task->expects($this->once())->method('setFeatured')->with($this->identicalTo(true));
 
         // Assert output content (without history)
         $command->parameters($task, $options);
@@ -160,6 +165,7 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $this->assertContains($options['destination'], $output);
         $this->assertContains($options['quantity'], $output);
         $this->assertContains('Do not use history.', $output);
+        $this->assertContains('only featured', $output);
     }
 
     /**

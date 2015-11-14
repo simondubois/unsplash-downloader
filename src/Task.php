@@ -65,6 +65,12 @@ class Task
     private $quantity;
 
     /**
+     * True if the task should only download featured photos
+     * @var bool
+     */
+    private $featured;
+
+    /**
      * Unsplash application ID from https://unsplash.com/developers
      * @var string
      */
@@ -120,6 +126,15 @@ class Task
     public function getQuantity()
     {
         return $this->quantity;
+    }
+
+    /**
+     * Get featured attribute
+     * @return bool True if the task should only download featured photos
+     */
+    public function getFeatured()
+    {
+        return $this->featured;
     }
 
     /**
@@ -183,6 +198,15 @@ class Task
     public function setQuantity($quantity)
     {
         $this->quantity = $quantity;
+    }
+
+    /**
+     * Set featured attribute
+     * @param bool $featured True if the task should only download featured photos
+     */
+    public function setFeatured($featured)
+    {
+        $this->featured = $featured;
     }
 
     /**
@@ -271,11 +295,16 @@ class Task
     /**
      * Request APi to get photos to downloads
      * @param Unsplash $unsplash Proxy to Unsplash API
-     * @return array<string, string> Photos to download
+     * @return array<string, string> Photo download links indexed by ID
      */
     public function getPhotos(Unsplash $unsplash) {
         $this->notify('Get photo list from unsplash... ');
-        $photos = $unsplash->allPhotos($this->quantity);
+
+        if ($this->featured) {
+            $photos = $unsplash->featuredPhotos($this->quantity);
+        } else {
+            $photos = $unsplash->allPhotos($this->quantity);
+        }
         $this->notify('success.'.PHP_EOL, 'info');
 
         return $photos;
@@ -283,7 +312,7 @@ class Task
 
     /**
      * Download all photos
-     * @param array<string, string> $photos Photos to download
+     * @param array<string, string> $photos Photo download links indexed by ID
      * @return boolean True if all downloads are successful
      */
     public function downloadAllPhotos($photos)

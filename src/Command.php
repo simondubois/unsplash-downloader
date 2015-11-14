@@ -9,7 +9,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * A command to check parameters validity and call a download task. Steps are :
- *  - check option validity (destination, count and history).
+ *  - check option validity (destination, count, history, featured).
  *  - load credentials (from local unsplash.ini file).
  *  - create a task (to deal with Unsplash API).
  *  - execute the task.
@@ -128,10 +128,10 @@ class Command extends SymfonyCommand
     private function configureOptions()
     {
         $this->addOption(
-            'destination', null, InputOption::VALUE_REQUIRED, 'Directory where to download photos', getcwd()
+            'destination', null, InputOption::VALUE_REQUIRED, 'Directory where to download photos.', getcwd()
         );
         $this->addOption(
-            'quantity', null, InputOption::VALUE_REQUIRED, 'Number of photos to download', '10'
+            'quantity', null, InputOption::VALUE_REQUIRED, 'Number of photos to download.', '10'
         );
         $this->addOption(
             'history',
@@ -142,6 +142,7 @@ class Command extends SymfonyCommand
                 Then any further download is going to ignore photos that have their ID in the history.
                 Usefull to delete unwanted pictures and prevent the CLI to download them again.'
         );
+        $this->addOption('featured', false, InputOption::VALUE_NONE, 'Download only featured photos.');
     }
 
 
@@ -197,6 +198,14 @@ class Command extends SymfonyCommand
             $this->verboseOutput('Use '.$history.' as history.'.PHP_EOL);
         } else {
             $this->verboseOutput('Do not use history.'.PHP_EOL);
+        }
+
+        $featured = $options['featured'];
+        $task->setFeatured($featured);
+        if ($featured) {
+            $this->verboseOutput('Download only featured photos.'.PHP_EOL);
+        } else {
+            $this->verboseOutput('Download featured and not featured photos.'.PHP_EOL);
         }
     }
 
