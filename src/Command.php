@@ -1,5 +1,6 @@
 <?php namespace Simondubois\UnsplashDownloader;
 
+use Phar;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -36,7 +37,7 @@ class Command extends SymfonyCommand
 
     /**
      * Path to INI file where to find API credentials.
-     * File unsplash.ini in the CWD by default.
+     * File unsplash.ini in the same directory than PHAR by default.
      * @var string
      */
     public $apiCrendentialsPath = 'unsplash.ini';
@@ -104,6 +105,16 @@ class Command extends SymfonyCommand
     //
     // Handle command setup
     //
+
+    /**
+     * Command constructor
+     * Set API credentials path to current PHAR path
+     */
+    public function __construct() {
+        $this->apiCrendentialsPath = dirname(Phar::running(false)).'/'.$this->apiCrendentialsPath;
+        parent::__construct();
+    }
+
 
     /**
      * Configure the Symfony command
@@ -175,7 +186,7 @@ class Command extends SymfonyCommand
      */
     public function loadApiCredentials(Validate $validate, Task $task)
     {
-        $this->verboseOutput('Load credentials from unsplash.ini :'.PHP_EOL);
+        $this->verboseOutput('Load credentials from '.$this->apiCrendentialsPath.' :'.PHP_EOL);
 
         $credentials = @parse_ini_file($this->apiCrendentialsPath);
         $validate->apiCredentials($credentials, $this->apiCrendentialsPath);

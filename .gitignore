@@ -2,5 +2,5 @@ composer.phar
 vendor/
 /*.sublime-project
 /*.sublime-workspace
-/unsplash.ini
+unsplash.ini
 tests/coverage
