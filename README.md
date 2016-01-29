@@ -1,11 +1,17 @@
 # unsplash-downloader
 
+![Unsplash image](https://raw.githubusercontent.com/simondubois/unsplash-downloader/master/screenshot.png  "Unsplash image")
+
+CLI to download photos from [unsplash.com](https://www.unsplash.com)
+
+## Status
+
 [![Build Status](https://travis-ci.org/simondubois/unsplash-downloader.svg)](https://travis-ci.org/simondubois/unsplash-downloader)
 [![Code Coverage](https://scrutinizer-ci.com/g/simondubois/unsplash-downloader/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/simondubois/unsplash-downloader/?branch=master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/simondubois/unsplash-downloader/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/simondubois/unsplash-downloader/?branch=master)
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/4556fb29-ce84-4668-a918-ce4fb39f3083/mini.png)](https://insight.sensiolabs.com/projects/4556fb29-ce84-4668-a918-ce4fb39f3083)
 
-CLI to download photos from unsplash.com
+This application is now considered as stable. No more features are planned, but feel free to suggest some if you need. Any help is welcome !
 
 
 ## Usage
