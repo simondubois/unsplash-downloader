@@ -1,6 +1,5 @@
 <?php namespace Simondubois\UnsplashDownloader;
 
-use Exception;
 use InvalidArgumentException;
 
 class Validate {

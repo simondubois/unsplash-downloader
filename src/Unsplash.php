@@ -7,11 +7,28 @@ use Crew\Unsplash\Photo;
 
 /**
  * A proxy to deal with the Unsplah API :
+ * - connect to the server.
  * - list photos
  * @codeCoverageIgnore
  */
 class Unsplash
 {
+
+    /**
+     * Unsplash application ID from https://unsplash.com/developers
+     * @var string
+     */
+    private $applicationId = '797a14e918f07f3559643a10f7c9e0de9d8a94262cd0ea0eb4b12c6d0993ed50';
+
+    /**
+     * Unsplash constructor (start HttpClient)
+     */
+    public function __construct()
+    {
+        HttpClient::init([
+            'applicationId' => $this->applicationId,
+        ]);
+    }
 
     /**
      * Request APi to get last photos

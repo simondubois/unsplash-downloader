@@ -1,7 +1,5 @@
 <?php namespace Simondubois\UnsplashDownloader;
 
-use Exception;
-
 /**
  * A task to download photos from Unsplash. Steps are
  * - list photos
