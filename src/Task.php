@@ -4,7 +4,6 @@ use Exception;
 
 /**
  * A task to download photos from Unsplash. Steps are
- * - connect to the server
  * - list photos
  * - download photos
  */
@@ -14,11 +13,6 @@ class Task
     //
     // Constants
     //
-
-    /**
-     * Error codes
-     */
-    const ERROR_CONNECTION = 1;
 
     /**
      * Notification types
@@ -75,18 +69,6 @@ class Task
      * @var bool
      */
     private $featured;
-
-    /**
-     * Unsplash application ID from https://unsplash.com/developers
-     * @var string
-     */
-    private $unsplashApplicationId;
-
-    /**
-     * Unsplash application secret from https://unsplash.com/developers
-     * @var string
-     */
-    private $unsplashSecret;
 
 
 
@@ -161,18 +143,6 @@ class Task
         return $this->history->getPath();
     }
 
-    /**
-     * Set credential attribute in unsplash instance
-     * @return array<string,string> Array with two indexes : 'applicationId' & 'secret'
-     */
-    public function getCredentials()
-    {
-        return [
-            'applicationId' => $this->unsplashApplicationId,
-            'secret' => $this->unsplashSecret,
-        ];
-    }
-
 
 
     //
@@ -242,17 +212,6 @@ class Task
         $this->history->load($history);
     }
 
-    /**
-     * Set credential attribute in unsplash instance
-     * @param string $applicationId Unsplash application ID
-     * @param string $secret Unsplash secret
-     */
-    public function setCredentials($applicationId, $secret)
-    {
-        $this->unsplashApplicationId = $applicationId;
-        $this->unsplashSecret = $secret;
-    }
-
 
 
     //
@@ -282,11 +241,7 @@ class Task
      */
     public function download()
     {
-        $unsplash = new Unsplash($this->unsplashApplicationId, $this->unsplashSecret);
-
-        if ($this->connect($unsplash) === false) {
-            return false;
-        }
+        $unsplash = new Unsplash();
 
         $photos = $this->getPhotos($unsplash);
         $success = $this->downloadAllPhotos($photos);
@@ -301,34 +256,9 @@ class Task
      */
     public function categories()
     {
-        $unsplash = new Unsplash($this->unsplashApplicationId, $this->unsplashSecret);
-
-        if ($this->connect($unsplash) === false) {
-            return false;
-        }
+        $unsplash = new Unsplash();
 
         return $this->listCategories($unsplash);
-    }
-
-    /**
-     * Connect to API
-     * @param Unsplash $unsplash Proxy to Unsplash API
-     * @return boolean True if the connection is successful
-     */
-    public function connect(Unsplash $unsplash)
-    {
-        $this->notify('Connect to unsplash... ');
-
-        if ($unsplash->initHttpClient()) {
-            $this->notify('success.'.PHP_EOL, self::NOTIFY_INFO);
-            return true;
-        }
-
-        $this->notify('failed.'.PHP_EOL, self::NOTIFY_ERROR);
-        throw new Exception(
-            'Can not connect to unsplash (check your Internet connection)',
-            self::ERROR_CONNECTION
-        );
     }
 
     /**

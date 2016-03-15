@@ -27,12 +27,7 @@ The executable is located into the build directory.
 
 ### Requirements
 
-Dependency : PHP 5.5+ or hhvm or nightly.
-
-To use Unsplash API (and thus this CLI), you have to get an application ID and secret from https://unsplash.com/developers. Then, create a file ``unsplash.ini`` in your working directory with the following content :
-
-	applicationId = "your-application-id"
-	secret = "your-secret"
+Dependency : PHP 5.5+ or 7 or hhvm.
 
 ### Options
 	--destination DESTINATION
@@ -87,7 +82,6 @@ This class is optimized for a standard CLI environment.
 A download command to handle the whole process to download photos. Steps are :
 
 - check option validity (destination, count and history).
-- load credentials (from local unsplash.ini file).
 - create a task (to deal with Unsplash API).
 - execute the task.
 ```
@@ -95,7 +89,6 @@ A download command to handle the whole process to download photos. Steps are :
 ```
 A task to download photos from Unsplash. Steps are
 
-- connect to the server
 - list photos
 - download photos
 ```
@@ -103,7 +96,6 @@ A task to download photos from Unsplash. Steps are
 ```
 A proxy to deal with the Unsplah API :
 
-- connect to the server.
 - list photos
 ```
 	src/History.php

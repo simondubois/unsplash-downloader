@@ -20,40 +20,6 @@ class Validate {
     const ERROR_QUANTITY_TOOHIGH       = 5;
     const ERROR_HISTORY_NOTFILE        = 6;
     const ERROR_HISTORY_NOTRW          = 7;
-    const ERROR_NO_CREDENTIALS         = 8;
-    const ERROR_INCORRECT_CREDENTIALS  = 9;
-
-
-
-    //
-    // API credentials
-    //
-
-    /**
-     * Valid loaded credentials and assign credentials to the task
-     * @param  bool|array $credentials Loaded credentials
-     * @param  string $apiCrendentialsPath Path of the credentials file
-     */
-    public function apiCredentials($credentials, $apiCrendentialsPath) {
-        if ($credentials === false) {
-            throw new Exception(
-                'The credentials file has not been found.'.PHP_EOL
-                    .'Please create the file '.$apiCrendentialsPath.' with the following content :'.PHP_EOL
-                    .'applicationId = "your-application-id"'.PHP_EOL
-                    .'secret = "your-secret"'.PHP_EOL
-                    .'Register to https://unsplash.com/developers to get your gredentials.',
-                static::ERROR_NO_CREDENTIALS
-            );
-        }
-
-        if (!isset($credentials['applicationId']) || !isset($credentials['secret'])) {
-            throw new Exception(
-                'The credentials file is not correct : '
-                    .'please check that both applicationId and secret are correctly defined.',
-                static::ERROR_INCORRECT_CREDENTIALS
-            );
-        }
-    }
 
 
 

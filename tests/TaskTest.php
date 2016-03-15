@@ -68,8 +68,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
     public function mockUnsplashForGetPhotos() {
         $unsplash = $this->getMock(
             'Simondubois\UnsplashDownloader\Unsplash',
-            ['allPhotos', 'photosInCategory', 'featuredPhotos'],
-            ['', '']
+            ['allPhotos', 'photosInCategory', 'featuredPhotos']
         );
 
         return $unsplash;
@@ -200,61 +199,20 @@ class TaskTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test Simondubois\UnsplashDownloader\Task::setCredentials()
-     *     & Simondubois\UnsplashDownloader\Task::getCredentials()
-     */
-    public function testCredentials() {
-        // Instantiate task & custom value
-        $task = new Task();
-        $applicationId = 'applicationId';
-        $secret = 'secret';
-        $credentials = [
-            'applicationId' => null,
-            'secret' => null,
-        ];
-
-        // Assert default value
-        $this->assertEquals($credentials, $task->getCredentials());
-
-        // Assert custom value
-        $credentials['applicationId'] = $applicationId;
-        $credentials['secret'] = $secret;
-        $task->setCredentials($applicationId, $secret);
-        $this->assertEquals($credentials, $task->getCredentials());
-    }
-
-    /**
      * Test Simondubois\UnsplashDownloader\Task::download()
      */
     public function testDownload() {
-        // Assert connect error
-        $history = $this->getMock('Simondubois\UnsplashDownloader\History');
-        $task = $this->getMock(
-            'Simondubois\UnsplashDownloader\Task',
-            ['getHistoryInstance', 'connect', 'getPhotos', 'downloadAllPhotos'],
-            [],
-            '',
-            false
-        );
-        $task->expects($this->once())->method('getHistoryInstance')->willReturn($history);
-        $task->expects($this->once())->method('connect')->willReturn(false);
-        $task->expects($this->never())->method('getPhotos');
-        $task->expects($this->never())->method('downloadAllPhotos');
-        $task->__construct();
-        $task->download();
-
         // Assert download error
         $history = $this->getMock('Simondubois\UnsplashDownloader\History');
         $task = $this->getMock(
             'Simondubois\UnsplashDownloader\Task',
-            ['getHistoryInstance', 'connect', 'getPhotos', 'downloadAllPhotos'],
+            ['getHistoryInstance', 'getPhotos', 'downloadAllPhotos'],
             [],
             '',
             false
         );
         $task->expects($this->once())->method('getHistoryInstance')->willReturn($history);
         $photos = new ArrayObject([], []);
-        $task->expects($this->once())->method('connect')->willReturn(true);
         $task->expects($this->once())->method('getPhotos')->willReturn($photos);
         $task->expects($this->once())
             ->method('downloadAllPhotos')
@@ -267,13 +225,12 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $history = $this->getMock('Simondubois\UnsplashDownloader\History');
         $task = $this->getMock(
             'Simondubois\UnsplashDownloader\Task',
-            ['getHistoryInstance', 'connect', 'getPhotos', 'downloadAllPhotos'],
+            ['getHistoryInstance', 'getPhotos', 'downloadAllPhotos'],
             [],
             '',
             false
         );
         $task->expects($this->once())->method('getHistoryInstance')->willReturn($history);
-        $task->expects($this->once())->method('connect')->willReturn(true);
         $task->expects($this->once())->method('getPhotos')->willReturn($photos);
         $task->expects($this->once())
             ->method('downloadAllPhotos')
@@ -287,61 +244,9 @@ class TaskTest extends PHPUnit_Framework_TestCase
      * Test Simondubois\UnsplashDownloader\Task::categories()
      */
     public function testCategories() {
-        // Assert connect error
-        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['connect', 'listCategories']);
-        $task->expects($this->once())->method('connect')->willReturn(false);
-        $task->expects($this->never())->method('listCategories');
-        $this->assertFalse($task->categories());
-
-        // Assert success
-        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['connect', 'listCategories']);
-        $task->expects($this->once())->method('connect')->willReturn(true);
+        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['listCategories']);
         $task->expects($this->once())->method('listCategories')->willReturn(true);
         $this->assertTrue($task->categories());
-    }
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Task::connect()
-     */
-    public function testFailedConnect() {
-        // Instantiate task
-        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['notify']);
-        $task->expects($this->exactly(2))->method('notify')->withConsecutive(
-            [$this->identicalTo('Connect to unsplash... '), $this->identicalTo(null)],
-            [$this->identicalTo('failed.'.PHP_EOL), $this->identicalTo(Task::NOTIFY_ERROR)]
-        );
-
-        // Instantiate proxy
-        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['initHttpClient'], ['', '']);
-        $unsplash->expects($this->once())->method('initHttpClient')->willReturn(false);
-
-        // Assert exception
-        $exceptionCode = null;
-        try {
-            $task->connect($unsplash);
-        } catch (Exception $exception) {
-            $exceptionCode = $exception->getCode();
-        }
-        $this->assertEquals(Task::ERROR_CONNECTION, $exceptionCode);
-    }
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Task::connect()
-     */
-    public function testSuccessfulConnect() {
-        // Instantiate task
-        $task = $this->getMock('Simondubois\UnsplashDownloader\Task', ['notify']);
-        $task->expects($this->exactly(2))->method('notify')->withConsecutive(
-            [$this->identicalTo('Connect to unsplash... '), $this->identicalTo(null)],
-            [$this->identicalTo('success.'.PHP_EOL), $this->identicalTo(Task::NOTIFY_INFO)]
-        );
-
-        // Instantiate proxy
-        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['initHttpClient'], ['', '']);
-        $unsplash->expects($this->once())->method('initHttpClient')->willReturn(true);
-
-        // Assert return value
-        $this->assertTrue($task->connect($unsplash));
     }
 
     /**
@@ -516,7 +421,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
         $categories = [1 => 'First category', 2 => 'Second category'];
 
         // Instantiate proxy
-        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['allCategories'], ['', '']);
+        $unsplash = $this->getMock('Simondubois\UnsplashDownloader\Unsplash', ['allCategories']);
         $unsplash->expects($this->once())->method('allCategories')->willReturn($categories);
 
         // Instantiate task

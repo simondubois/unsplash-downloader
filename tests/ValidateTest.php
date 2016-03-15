@@ -8,56 +8,6 @@ use Simondubois\UnsplashDownloader\Validate;
 
 class ValidateTest extends PHPUnit_Framework_TestCase
 {
-
-    //
-    // API credentiels
-    //
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Validate::apiCredentials()
-     */
-    public function testNoFileApiCredentials() {
-        $validate = new Validate();
-
-        // Assert no API credentials
-        $exceptionCode = null;
-        try {
-            $validate->apiCredentials(false, '');
-        } catch (Exception $exception) {
-            $exceptionCode = $exception->getCode();
-        }
-
-        $this->assertEquals(Validate::ERROR_NO_CREDENTIALS, $exceptionCode);
-    }
-
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Validate::apiCredentials()
-     */
-    public function testIncorrectApiCredentials() {
-        $validate = new Validate();
-
-        // Assert incorrect API credentials
-        $exceptionCode = null;
-        try {
-            $validate->apiCredentials([], '');
-        } catch (Exception $exception) {
-            $exceptionCode = $exception->getCode();
-        }
-
-        $this->assertEquals(Validate::ERROR_INCORRECT_CREDENTIALS, $exceptionCode);
-    }
-
-
-    /**
-     * Test Simondubois\UnsplashDownloader\Validate::apiCredentials()
-     */
-    public function testValidApiCredentials() {
-        $validate = new Validate();
-        $validate->apiCredentials(['applicationId' => 'your-application-id', 'secret' => 'your-secret'], '');
-    }
-
-
     /**
      * Test Simondubois\UnsplashDownloader\Validate::quantity()
      */

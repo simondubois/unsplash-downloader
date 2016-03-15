@@ -9,7 +9,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * A command to check parameters validity and call a download task. Steps are :
  *  - check option validity (destination, count, history, featured, categories, category).
- *  - load credentials (from local unsplash.ini file).
  *  - create a task (to deal with Unsplash API).
  *  - execute the task.
  */
@@ -34,13 +33,6 @@ class Command extends SymfonyCommand
      * @var OutputInterface
      */
     public $output;
-
-    /**
-     * Path to INI file where to find API credentials.
-     * File unsplash.ini in the same directory than PHAR by default.
-     * @var string
-     */
-    public $apiCrendentialsPath = 'unsplash.ini';
 
 
 
@@ -107,16 +99,6 @@ class Command extends SymfonyCommand
     //
 
     /**
-     * Command constructor
-     * Set API credentials path to current PHAR path
-     */
-    public function __construct() {
-        $this->apiCrendentialsPath = dirname(Phar::running(false)).'/'.$this->apiCrendentialsPath;
-        parent::__construct();
-    }
-
-
-    /**
      * Configure the Symfony command
      */
     protected function configure()
@@ -157,7 +139,6 @@ class Command extends SymfonyCommand
         $validate = new Validate();
 
         $task = $this->task();
-        $this->loadApiCredentials($validate, $task);
 
         if ($input->getOption('categories')) {
             $task->categories();
@@ -177,23 +158,6 @@ class Command extends SymfonyCommand
         $task->setNotificationCallback([$this, 'output']);
 
         return $task;
-    }
-
-    /**
-     * Load & validate API credentials
-     * @param  Validate $validate Validate instance
-     * @param  Task $task Download task
-     */
-    public function loadApiCredentials(Validate $validate, Task $task)
-    {
-        $this->verboseOutput('Load credentials from '.$this->apiCrendentialsPath.' :'.PHP_EOL);
-
-        $credentials = @parse_ini_file($this->apiCrendentialsPath);
-        $validate->apiCredentials($credentials, $this->apiCrendentialsPath);
-
-        $task->setCredentials($credentials['applicationId'], $credentials['secret']);
-        $this->verboseOutput("\tApplication ID\t: ".$credentials['applicationId'].PHP_EOL);
-        $this->verboseOutput("\tSecret\t\t: ".$credentials['secret'].PHP_EOL);
     }
 
     /**
