@@ -201,8 +201,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
     /**
      * Test Simondubois\UnsplashDownloader\Task::download()
      */
-    public function testDownload() {
-        // Assert download error
+    public function testDownloadError() {
         $history = $this->getMock('Simondubois\UnsplashDownloader\History');
         $task = $this->getMock(
             'Simondubois\UnsplashDownloader\Task',
@@ -220,8 +219,12 @@ class TaskTest extends PHPUnit_Framework_TestCase
             ->willReturn(false);
         $task->__construct();
         $task->download();
+    }
 
-        // Assert success
+    /**
+     * Test Simondubois\UnsplashDownloader\Task::download()
+     */
+    public function testDownloadSuccess() {
         $history = $this->getMock('Simondubois\UnsplashDownloader\History');
         $task = $this->getMock(
             'Simondubois\UnsplashDownloader\Task',
@@ -230,6 +233,7 @@ class TaskTest extends PHPUnit_Framework_TestCase
             '',
             false
         );
+        $photos = new ArrayObject([], []);
         $task->expects($this->once())->method('getHistoryInstance')->willReturn($history);
         $task->expects($this->once())->method('getPhotos')->willReturn($photos);
         $task->expects($this->once())
