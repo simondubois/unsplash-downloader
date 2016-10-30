@@ -43,8 +43,10 @@ ADD https://raw.githubusercontent.com/jamesob/desk/master/shell_plugins/bash/des
 RUN chmod a+r /usr/share/bash-completion/completions/desk
 
 RUN groupadd -r -g 1000 docker \
-    && useradd -r -u 1000 -g 1000 -d /home/docker -s /bin/bash docker
-USER docker
+    && useradd -r -u 1000 -g 1000 -d /home/docker -s /bin/bash docker \
+    && mkdir /home/docker \
+    && chmod 755 /home/docker \
+    && chown 1000:1000 /home/docker
 
 ADD https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh /home/docker/.bash_gitprompt
 RUN chmod a+r /home/docker/.bash_gitprompt
