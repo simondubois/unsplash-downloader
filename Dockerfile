@@ -12,8 +12,6 @@ RUN apt-get update \
 
 RUN apt-get install -y nano
 
-RUN apt-get install -y trash-cli
-
 RUN apt-get install -y git
 
 RUN apt-get install -y zlib1g-dev \
