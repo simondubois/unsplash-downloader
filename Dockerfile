@@ -10,6 +10,8 @@ RUN apt-get update \
     && locale-gen \
     && /usr/sbin/update-locale LANG=en_US.UTF-8
 
+RUN apt-get install -y bash-completion
+
 RUN apt-get install -y nano
 
 RUN apt-get install -y git
